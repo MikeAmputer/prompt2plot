@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Prompt2Plot\Prompt2Plot.csproj"/>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ClickHouse.Driver" Version="0.7.19"/>
+	</ItemGroup>
+
+</Project>
