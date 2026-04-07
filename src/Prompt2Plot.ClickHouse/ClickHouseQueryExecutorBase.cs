@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using ClickHouse.Driver;
 using ClickHouse.Driver.ADO;
 using ClickHouse.Driver.ADO.Adapters;
 using ClickHouse.Driver.Numerics;

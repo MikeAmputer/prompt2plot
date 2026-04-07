@@ -13,7 +13,7 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 	protected abstract IHttpClientFactory HttpClientFactory { get; }
 	protected abstract string HttpClientName { get; }
 
-	protected virtual ILogger Logger => NullLogger.Instance;
+	protected virtual ILogger Logger { get; } = NullLogger.Instance;
 
 	protected abstract string[] IncludedDatabases { get; }
 	protected virtual (string database, string table)[] IncludedTables => [];

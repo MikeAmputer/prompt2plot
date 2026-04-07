@@ -8,8 +8,8 @@ public sealed class ValidationContext
 	public required ModelResponse ModelResponse { get; init; }
 
 	internal bool ShouldRetry { get; private set; }
-	public string? Error { get; set; }
-	public string RetryAuxiliaryPrompt { get; set; } = string.Empty;
+	public List<string> Errors { get; } = [];
+	public List<string> RetryAuxiliaryPrompts { get; } = [];
 
 	public void MarkForRetry()
 	{

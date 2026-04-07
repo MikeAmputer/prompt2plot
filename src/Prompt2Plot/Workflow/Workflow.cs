@@ -28,16 +28,16 @@ internal sealed class Workflow
 
 	public Task<WorkItemResult> RunAsync(WorkItem workItem, CancellationToken cancellationToken)
 	{
-		return RunAsync(workItem, retryAttempt: 0, string.Empty, cancellationToken);
+		return RunAsync(workItem, retryAttempt: 0, [], cancellationToken);
 	}
 
 	private async Task<WorkItemResult> RunAsync(
 		WorkItem workItem,
 		int retryAttempt,
-		string auxiliaryPrompt,
+		List<string> auxiliaryPrompts,
 		CancellationToken cancellationToken)
 	{
-		var (promptContext, errorResult) = await GeneratePromptAsync(workItem, auxiliaryPrompt, cancellationToken);
+		var (promptContext, errorResult) = await GeneratePromptAsync(workItem, auxiliaryPrompts, cancellationToken);
 
 		if (errorResult != null)
 		{
@@ -64,7 +64,7 @@ internal sealed class Workflow
 					await RunAsync(
 						workItem,
 						retryAttempt + 1,
-						validationContext.RetryAuxiliaryPrompt,
+						validationContext.RetryAuxiliaryPrompts,
 						cancellationToken);
 				}
 				else
@@ -73,25 +73,25 @@ internal sealed class Workflow
 					{
 						WorkItemId = workItem.Id,
 						Success = false,
-						Error = validationContext.Error == null
+						Error = validationContext.Errors.Count == 0
 							? "Validation error."
-							: $"Validation error: {validationContext.Error}"
+							: $"Validation errors: {string.Join(';', validationContext.Errors)}"
 					};
 				}
 			}
 		}
 
-		if (validationContext.ModelResponse.Datasets == null)
+		if (validationContext.ModelResponse.Datasets == null || !validationContext.ModelResponse.Datasets.Any())
 		{
 			return new WorkItemResult
 			{
 				WorkItemId = workItem.Id,
 				Success = false,
-				Error = "Failed to parse model response datasets."
+				Error = "Failed to parse model response datasets or it is empty."
 			};
 		}
 
-		if (validationContext.ModelResponse.Datasets.Any(ds => string.IsNullOrWhiteSpace(ds.SqlQuery)))
+		if (validationContext.ModelResponse.Datasets!.Any(ds => string.IsNullOrWhiteSpace(ds.SqlQuery)))
 		{
 			return new WorkItemResult
 			{
@@ -104,7 +104,7 @@ internal sealed class Workflow
 		var dbResponses = new ConcurrentBag<(DatabaseResponse DbResponse, ModelResponseDataset ModelResponse)>();
 
 		await Parallel.ForEachAsync(
-			validationContext.ModelResponse.Datasets,
+			validationContext.ModelResponse.Datasets!,
 			new ParallelOptions
 			{
 				CancellationToken = cancellationToken,
@@ -148,7 +148,7 @@ internal sealed class Workflow
 
 	private async Task<(PromptContext Context, WorkItemResult? ErrorResult)> GeneratePromptAsync(
 		WorkItem workItem,
-		string auxiliaryPrompt,
+		List<string> auxiliaryPrompts,
 		CancellationToken cancellationToken)
 	{
 		var promptContext = new PromptContext
@@ -168,9 +168,9 @@ internal sealed class Workflow
 			});
 		}
 
-		if (!string.IsNullOrWhiteSpace(auxiliaryPrompt))
+		if (auxiliaryPrompts.Count != 0)
 		{
-			promptContext.Prompt += auxiliaryPrompt;
+			promptContext.Prompt += string.Join("\n", auxiliaryPrompts);
 		}
 
 		return (promptContext, null);
