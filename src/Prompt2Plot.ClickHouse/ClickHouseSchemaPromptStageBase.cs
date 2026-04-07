@@ -34,7 +34,7 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 
 		if (!_cacheTimer.IsRunning || string.IsNullOrWhiteSpace(_cachedPrompt))
 		{
-			context.Error = "Unable to fetch ClickHouse database schema.";
+			context.Errors.Add("Unable to fetch ClickHouse database schema.");;
 
 			return;
 		}

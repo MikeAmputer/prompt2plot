@@ -8,7 +8,7 @@ public sealed class WorkItemResult
 	public string? ChartDescription { get; init; }
 
 	public List<WorkItemResultDataset> Datasets { get; init; } = [];
-	public string? Error { get; init; }
+	public List<string> Errors { get; init; } = [];
 }
 
 public sealed class WorkItemResultDataset

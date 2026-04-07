@@ -61,23 +61,22 @@ internal sealed class Workflow
 			{
 				if (retryAttempt < _validationPipeline.MaxRetries)
 				{
-					await RunAsync(
+					return await RunAsync(
 						workItem,
 						retryAttempt + 1,
 						validationContext.RetryAuxiliaryPrompts,
 						cancellationToken);
 				}
-				else
+
+				var validationsErrors = new List<string> { "Workflow generated validation errors." };
+				validationsErrors.AddRange(validationContext.Errors);
+
+				return new WorkItemResult
 				{
-					return new WorkItemResult
-					{
-						WorkItemId = workItem.Id,
-						Success = false,
-						Error = validationContext.Errors.Count == 0
-							? "Validation error."
-							: $"Validation errors: {string.Join(';', validationContext.Errors)}"
-					};
-				}
+					WorkItemId = workItem.Id,
+					Success = false,
+					Errors = validationsErrors,
+				};
 			}
 		}
 
@@ -87,7 +86,7 @@ internal sealed class Workflow
 			{
 				WorkItemId = workItem.Id,
 				Success = false,
-				Error = "Failed to parse model response datasets or it is empty."
+				Errors = ["Failed to parse model response datasets or it is empty."]
 			};
 		}
 
@@ -97,7 +96,7 @@ internal sealed class Workflow
 			{
 				WorkItemId = workItem.Id,
 				Success = false,
-				Error = "Model response contains datasets with empty SQL queries."
+				Errors = ["Model response contains datasets with empty SQL queries."]
 			};
 		}
 
@@ -127,13 +126,15 @@ internal sealed class Workflow
 			})
 			.ToList();
 
-		var errors = resultDatasets
+		var datasetExecutionErrors = resultDatasets
 			.Where(d => !string.IsNullOrEmpty(d.Error))
 			.Select(d => d.Error)
 			.ToList();
 
-		var aggregatedError = errors.Count != 0 ? string.Join("; ", errors) : null;
-		var success = errors.Count == 0;
+		var success = datasetExecutionErrors.Count == 0;
+
+		var errors = success ? [] : new List<string> { "Dataset execution errors occured." };
+		errors.AddRange(datasetExecutionErrors!);
 
 		return new WorkItemResult
 		{
@@ -142,7 +143,7 @@ internal sealed class Workflow
 			ChartType = validationContext.ModelResponse.ChartType,
 			ChartDescription = validationContext.ModelResponse.ChartDescription,
 			Datasets = resultDatasets,
-			Error = aggregatedError,
+			Errors = errors,
 		};
 	}
 
@@ -158,13 +159,16 @@ internal sealed class Workflow
 
 		await _promptPipeline.RunAsync(promptContext, cancellationToken);
 
-		if (promptContext.Error != null)
+		if (promptContext.Errors.Count != 0)
 		{
+			var promptGenerationErrors = new List<string> { "Prompt generation errors occured." };
+			promptGenerationErrors.AddRange(promptContext.Errors);
+
 			return (promptContext, new WorkItemResult
 			{
 				WorkItemId = workItem.Id,
 				Success = false,
-				Error = $"Prompt generation error: {promptContext.Error}"
+				Errors = promptGenerationErrors,
 			});
 		}
 

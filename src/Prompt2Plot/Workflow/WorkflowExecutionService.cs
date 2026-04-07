@@ -226,6 +226,9 @@ internal sealed class WorkflowExecutionService : IWorkflowExecutionService
 			var workflow = _workflowFactory.GetWorkflow(workItem.WorkflowKey);
 			var result = await workflow.RunAsync(workItem, cancellationToken);
 
+			// TODO:
+			// if result saving throws we will try to execute saving again,
+			// which might lead to two results for single work item
 			await SaveResult(result, cancellationToken);
 		}
 		catch (Exception exception)
@@ -234,7 +237,7 @@ internal sealed class WorkflowExecutionService : IWorkflowExecutionService
 			{
 				WorkItemId = workItem.Id,
 				Success = false,
-				Error = exception.Message,
+				Errors = [exception.Message],
 			};
 
 			await TrySaveResult(errorResult, cancellationToken);
