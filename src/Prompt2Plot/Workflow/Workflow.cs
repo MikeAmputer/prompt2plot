@@ -28,16 +28,21 @@ internal sealed class Workflow
 
 	public Task<WorkItemResult> RunAsync(WorkItem workItem, CancellationToken cancellationToken)
 	{
-		return RunAsync(workItem, retryAttempt: 0, [], cancellationToken);
+		return RunAsync(workItem, retryAttempt: 0, promptOverride: null, auxiliaryPrompts: [], cancellationToken);
 	}
 
 	private async Task<WorkItemResult> RunAsync(
 		WorkItem workItem,
 		int retryAttempt,
+		string? promptOverride,
 		List<string> auxiliaryPrompts,
 		CancellationToken cancellationToken)
 	{
-		var (promptContext, errorResult) = await GeneratePromptAsync(workItem, auxiliaryPrompts, cancellationToken);
+		var (promptContext, errorResult) = await GeneratePromptAsync(
+			workItem,
+			promptOverride,
+			auxiliaryPrompts,
+			cancellationToken);
 
 		if (errorResult != null)
 		{
@@ -64,6 +69,7 @@ internal sealed class Workflow
 					return await RunAsync(
 						workItem,
 						retryAttempt + 1,
+						promptContext.Prompt,
 						validationContext.RetryAuxiliaryPrompts,
 						cancellationToken);
 				}
@@ -149,6 +155,7 @@ internal sealed class Workflow
 
 	private async Task<(PromptContext Context, WorkItemResult? ErrorResult)> GeneratePromptAsync(
 		WorkItem workItem,
+		string? promptOverride,
 		List<string> auxiliaryPrompts,
 		CancellationToken cancellationToken)
 	{
@@ -157,7 +164,14 @@ internal sealed class Workflow
 			NaturalLanguageRequest = workItem.NaturalLanguageRequest
 		};
 
-		await _promptPipeline.RunAsync(promptContext, cancellationToken);
+		if (string.IsNullOrEmpty(promptOverride))
+		{
+			await _promptPipeline.RunAsync(promptContext, cancellationToken);
+		}
+		else
+		{
+			promptContext.Prompt = promptOverride;
+		}
 
 		if (promptContext.Errors.Count != 0)
 		{
