@@ -3,7 +3,7 @@
 namespace Prompt2Plot.Defaults;
 
 /// <summary>
-/// A default in-memory implementation of <see cref="IExtendedWorkItemRepository"/>.
+/// A default in-memory implementation of <see cref="IWorkItemRepository"/>.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -22,7 +22,7 @@ namespace Prompt2Plot.Defaults;
 /// and <see cref="MaxResults"/> to customize behavior.
 /// </para>
 /// </remarks>
-public class DefaultInMemoryWorkItemRepository : IExtendedWorkItemRepository
+public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 {
 	/// <summary>
 	/// Gets a value indicating whether the repository should attempt to publish
@@ -62,14 +62,13 @@ public class DefaultInMemoryWorkItemRepository : IExtendedWorkItemRepository
 
 	private readonly IWorkItemPublisher? _publisher;
 
-	protected DefaultInMemoryWorkItemRepository(IWorkItemPublisher publisher)
+	public DefaultInMemoryWorkItemRepository(IWorkItemPublisher publisher)
 	{
 		ArgumentNullException.ThrowIfNull(publisher);
 
 		_publisher = publisher;
 	}
 
-	/// <inheritdoc />
 	public Task<ulong> AddWorkItemAsync(WorkItem workItem, CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(workItem);
@@ -118,7 +117,6 @@ public class DefaultInMemoryWorkItemRepository : IExtendedWorkItemRepository
 		return Task.CompletedTask;
 	}
 
-	/// <inheritdoc />
 	/// <exception cref="KeyNotFoundException">
 	/// Thrown when a result for the specified <paramref name="workItemId"/> does not exist.
 	/// </exception>
