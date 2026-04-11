@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using ClickHouse.Driver;
 using ClickHouse.Driver.ADO;
 using ClickHouse.Driver.ADO.Adapters;
 using ClickHouse.Driver.Numerics;
@@ -36,6 +35,7 @@ public abstract class ClickHouseQueryExecutorBase : DataTableExecutor
 		command.QueryId = queryId;
 		adapter.SelectCommand = command;
 
+		// TODO: if cancellationToken.CanBeCanceled
 		await using var _ = cancellationToken.Register(() => TryKillQuery(queryId));
 
 		var dataTable = new DataTable();
