@@ -4,6 +4,7 @@ using ClickHouse.Driver.ADO;
 using ClickHouse.Driver.Utility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Prompt2Plot.ClickHouse.Logging;
 
 namespace Prompt2Plot.ClickHouse;
 
@@ -12,8 +13,6 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 	protected abstract string ConnectionString { get; }
 	protected abstract IHttpClientFactory HttpClientFactory { get; }
 	protected abstract string HttpClientName { get; }
-
-	protected virtual ILogger Logger { get; } = NullLogger.Instance;
 
 	protected abstract string[] IncludedDatabases { get; }
 	protected virtual (string database, string table)[] IncludedTables => [];
@@ -24,6 +23,14 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 	private readonly Stopwatch _cacheTimer = new();
 	private readonly SemaphoreSlim _cacheSemaphore = new(1, 1);
 	protected virtual TimeSpan CacheDuration => TimeSpan.FromMinutes(30);
+
+	private readonly ILogger _logger;
+
+	protected ClickHouseSchemaPromptStageBase(ILoggerFactory? loggerFactory = null)
+	{
+		var logFactory = loggerFactory ?? NullLoggerFactory.Instance;
+		_logger = logFactory.CreateLogger<ClickHouseSchemaPromptStageBase>();
+	}
 
 	public async Task ExecuteAsync(PromptContext context, CancellationToken cancellationToken)
 	{
@@ -79,7 +86,7 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 		}
 		catch (Exception ex)
 		{
-			Logger.LogWarning(ex, "Failed to fetch ClickHouse schema.");
+			Log.SchemaRefreshFailed(_logger, ex);
 		}
 		finally
 		{
