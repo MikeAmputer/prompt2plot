@@ -8,6 +8,25 @@ using Prompt2Plot.ClickHouse.Logging;
 
 namespace Prompt2Plot.ClickHouse;
 
+/// <summary>
+/// A prompt pipeline stage that appends ClickHouse database schema information
+/// to the generated prompt.
+/// </summary>
+/// <remarks>
+/// This stage queries ClickHouse system tables to discover database schema
+/// metadata and formats it into a textual description suitable for inclusion
+/// in a language model prompt.
+///
+/// The schema includes:
+/// <list type="bullet">
+/// <item><description>Databases and tables</description></item>
+/// <item><description>Table engines</description></item>
+/// <item><description>Columns and data types</description></item>
+/// <item><description>Table and column comments (if available)</description></item>
+/// </list>
+///
+/// The generated schema prompt is cached for the duration specified by <see cref="ClickHouseSchemaPromptStageSettings"/>.
+/// </remarks>
 public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 {
 	private readonly string _connectionString;
@@ -62,7 +81,8 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 
 		if (!_cacheTimer.IsRunning || string.IsNullOrWhiteSpace(_cachedPrompt))
 		{
-			context.Errors.Add("Unable to fetch ClickHouse database schema.");;
+			context.Errors.Add("Unable to fetch ClickHouse database schema.");
+			;
 
 			return;
 		}
@@ -80,12 +100,20 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 				return;
 			}
 
+			SchemaPromptLogs.SchemaRefreshStarted(_logger);
+
 			await using var clickHouseConnection = new ClickHouseConnection(
 				_connectionString,
 				_httpClientFactory,
 				_httpClientName);
 
 			var tables = await FetchTables(clickHouseConnection, cancellationToken);
+
+			if (tables.Count == 0)
+			{
+				SchemaPromptLogs.NoTablesDiscovered(_logger);
+			}
+
 			await FetchColumns(clickHouseConnection, tables, cancellationToken);
 
 			var sb = new StringBuilder();
@@ -104,10 +132,12 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 
 			_cachedPrompt = sb.ToString();
 			_cacheTimer.Restart();
+
+			SchemaPromptLogs.SchemaRefreshCompleted(_logger, tables.Count, _cachedPrompt.Length);
 		}
 		catch (Exception ex)
 		{
-			Log.SchemaRefreshFailed(_logger, ex);
+			SchemaPromptLogs.SchemaRefreshFailed(_logger, ex);
 		}
 		finally
 		{
@@ -211,27 +241,27 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 	}
 
 	private const string SelectTablesSql = """
-		SELECT
-		    database,
-		    name,
-		    engine,
-		    sorting_key,
-		    total_rows,
-		    comment
-		FROM system.tables
-		WHERE {0}
-		ORDER BY database, name
-		""";
+	                                       SELECT
+	                                           database,
+	                                           name,
+	                                           engine,
+	                                           sorting_key,
+	                                           total_rows,
+	                                           comment
+	                                       FROM system.tables
+	                                       WHERE {0}
+	                                       ORDER BY database, name
+	                                       """;
 
 	private const string SelectColumnsSql = """
-		SELECT
-		    database,
-		    table,
-		    name,
-		    type,
-		    comment
-		FROM system.columns
-		WHERE {0}
-		ORDER BY database, table, position
-		""";
+	                                        SELECT
+	                                            database,
+	                                            table,
+	                                            name,
+	                                            type,
+	                                            comment
+	                                        FROM system.columns
+	                                        WHERE {0}
+	                                        ORDER BY database, table, position
+	                                        """;
 }

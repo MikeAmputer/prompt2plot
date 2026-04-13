@@ -1,5 +1,8 @@
 ﻿namespace Prompt2Plot.ClickHouse;
 
+/// <summary>
+/// Provides configuration for <see cref="ClickHouseQueryExecutor"/>.
+/// </summary>
 public sealed class ClickHouseQueryExecutorSettings
 {
 	/// <summary>

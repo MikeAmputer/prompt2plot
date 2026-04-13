@@ -1,5 +1,8 @@
 ﻿namespace Prompt2Plot.ClickHouse;
 
+/// <summary>
+/// Provides configuration for <see cref="ClickHouseQueryValidationStage"/>.
+/// </summary>
 public sealed class ClickHouseQueryValidationStageSettings
 {
 	/// <summary>
