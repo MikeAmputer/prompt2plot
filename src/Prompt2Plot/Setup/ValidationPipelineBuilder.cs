@@ -7,7 +7,17 @@ public sealed class ValidationPipelineBuilder
 	private readonly ValidationPipelineStageRegistry _stageRegistry = new();
 	private OptionalValue<int> _maxRetries;
 
-	internal ValidationPipelineBuilder() { }
+	internal IServiceCollection ServiceCollection { get; }
+	internal string WorkflowKey { get; }
+
+	internal ValidationPipelineBuilder(IServiceCollection serviceCollection, string key)
+	{
+		ArgumentNullException.ThrowIfNull(serviceCollection);
+		ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+		ServiceCollection = serviceCollection;
+		WorkflowKey = key;
+	}
 
 	public ValidationPipelineBuilder AddStage<TStage>()
 		where TStage : class, IValidationPipelineStage
@@ -38,22 +48,19 @@ public sealed class ValidationPipelineBuilder
 		return this;
 	}
 
-	internal void Build(IServiceCollection serviceCollection, string key)
+	internal void Build()
 	{
-		ArgumentNullException.ThrowIfNull(serviceCollection);
-		ArgumentException.ThrowIfNullOrWhiteSpace(key);
-
 		if (!_stageRegistry.Any())
 		{
-			throw new InvalidOperationException($"No validation pipeline stages for workflow '{key}'.");
+			throw new InvalidOperationException($"No validation pipeline stages for workflow '{WorkflowKey}'.");
 		}
 
-		serviceCollection.AddKeyedSingleton(key, _stageRegistry);
-		_stageRegistry.RegisterStages(serviceCollection, key);
+		ServiceCollection.AddKeyedSingleton(WorkflowKey, _stageRegistry);
+		_stageRegistry.RegisterStages(ServiceCollection, WorkflowKey);
 
 		var maxRetries = _maxRetries.OrElseValue(0);
 
-		serviceCollection.AddKeyedTransient<ValidationPipeline>(key, (serviceProvider, serviceKey) =>
+		ServiceCollection.AddKeyedTransient<ValidationPipeline>(WorkflowKey, (serviceProvider, serviceKey) =>
 		{
 			var stageRegistry =
 				serviceProvider.GetRequiredKeyedService<ValidationPipelineStageRegistry>(serviceKey);

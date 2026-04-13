@@ -9,12 +9,15 @@ public sealed class WorkflowServiceBuilder : IStrictWorkflowServiceBuilder
 	private OptionalValue<Func<IServiceProvider, object?, IPromptExecutor>> _promptExecutorFactory;
 	private OptionalValue<Func<IServiceProvider, object?, ISqlQueryExecutor>> _sqlQueryExecutorFactory;
 
+	internal IServiceCollection ServiceCollection { get; }
 	internal string WorkflowKey { get; }
 
-	internal WorkflowServiceBuilder(string key)
+	internal WorkflowServiceBuilder(IServiceCollection serviceCollection, string key)
 	{
+		ArgumentNullException.ThrowIfNull(serviceCollection);
 		ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
+		ServiceCollection = serviceCollection;
 		WorkflowKey = key;
 	}
 
@@ -112,32 +115,29 @@ public sealed class WorkflowServiceBuilder : IStrictWorkflowServiceBuilder
 		return this;
 	}
 
-	internal void Build(IServiceCollection serviceCollection)
+	internal void Build()
 	{
-		ArgumentNullException.ThrowIfNull(serviceCollection);
-		ArgumentException.ThrowIfNullOrWhiteSpace(WorkflowKey);
-
-		var promptPipelineBuilder = new PromptPipelineBuilder();
+		var promptPipelineBuilder = new PromptPipelineBuilder(ServiceCollection, WorkflowKey);
 		_promptPipelineBuilderSetup
 			.NotNullOrThrow(nameof(_promptPipelineBuilderSetup))
 			.Invoke(promptPipelineBuilder);
 
-		promptPipelineBuilder.Build(serviceCollection, WorkflowKey);
+		promptPipelineBuilder.Build();
 
 		if (_validationPipelineBuilderSetup.HasValue)
 		{
-			var validationPipelineBuilder = new ValidationPipelineBuilder();
+			var validationPipelineBuilder = new ValidationPipelineBuilder(ServiceCollection, WorkflowKey);
 			_validationPipelineBuilderSetup
 				.NotNullOrThrow(nameof(_validationPipelineBuilderSetup))
 				.Invoke(validationPipelineBuilder);
 
-			validationPipelineBuilder.Build(serviceCollection, WorkflowKey);
+			validationPipelineBuilder.Build();
 		}
 
 		var promptExecutorFactory = _promptExecutorFactory.NotNullOrThrow(nameof(_promptExecutorFactory));
-		serviceCollection.AddKeyedTransient(WorkflowKey, promptExecutorFactory);
+		ServiceCollection.AddKeyedTransient(WorkflowKey, promptExecutorFactory);
 
 		var sqlQueryExecutorFactory = _sqlQueryExecutorFactory.NotNullOrThrow(nameof(_sqlQueryExecutorFactory));
-		serviceCollection.AddKeyedTransient(WorkflowKey, sqlQueryExecutorFactory);
+		ServiceCollection.AddKeyedTransient(WorkflowKey, sqlQueryExecutorFactory);
 	}
 }

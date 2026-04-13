@@ -21,9 +21,9 @@ public static class ServiceCollectionExtensions
 		serviceCollection.AddSingleton<WorkItemPublisher>();
 		serviceCollection.AddSingleton<IWorkItemPublisher>(sp => sp.GetRequiredService<WorkItemPublisher>());
 
-		var builder = new Prompt2PlotBuilder();
+		var builder = new Prompt2PlotBuilder(serviceCollection);
 		setup(builder);
-		builder.Build(serviceCollection);
+		builder.Build();
 
 		return serviceCollection;
 	}

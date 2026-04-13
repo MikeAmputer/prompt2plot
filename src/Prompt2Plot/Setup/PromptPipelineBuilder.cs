@@ -6,7 +6,17 @@ public sealed class PromptPipelineBuilder
 {
 	private readonly PromptPipelineStageRegistry _stageRegistry = new();
 
-	internal PromptPipelineBuilder() { }
+	internal IServiceCollection ServiceCollection { get; }
+	internal string WorkflowKey { get; }
+
+	internal PromptPipelineBuilder(IServiceCollection serviceCollection, string key)
+	{
+		ArgumentNullException.ThrowIfNull(serviceCollection);
+		ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+		ServiceCollection = serviceCollection;
+		WorkflowKey = key;
+	}
 
 	public PromptPipelineBuilder AddStage<TStage>()
 		where TStage : class, IPromptPipelineStage
@@ -24,21 +34,18 @@ public sealed class PromptPipelineBuilder
 		return this;
 	}
 
-	internal void Build(IServiceCollection serviceCollection, string key)
+	internal void Build()
 	{
-		ArgumentNullException.ThrowIfNull(serviceCollection);
-		ArgumentException.ThrowIfNullOrWhiteSpace(key);
-
 		if (!_stageRegistry.Any())
 		{
-			throw new InvalidOperationException($"No prompt pipeline stages for workflow '{key}'.");
+			throw new InvalidOperationException($"No prompt pipeline stages for workflow '{WorkflowKey}'.");
 		}
 
-		serviceCollection.AddKeyedSingleton(key, _stageRegistry);
+		ServiceCollection.AddKeyedSingleton(WorkflowKey, _stageRegistry);
 
-		_stageRegistry.RegisterStages(serviceCollection, key);
+		_stageRegistry.RegisterStages(ServiceCollection, WorkflowKey);
 
-		serviceCollection.AddKeyedTransient<PromptPipeline>(key, (serviceProvider, serviceKey) =>
+		ServiceCollection.AddKeyedTransient<PromptPipeline>(WorkflowKey, (serviceProvider, serviceKey) =>
 		{
 			var stageRegistry = serviceProvider.GetRequiredKeyedService<PromptPipelineStageRegistry>(serviceKey);
 			var stages = stageRegistry.GetStages(serviceProvider, serviceKey).ToList();

@@ -27,20 +27,18 @@ public static class BuilderExtensions
 
 	public static WorkflowServiceBuilder UseClickHouseQueryExecutor(
 		this WorkflowServiceBuilder builder,
-		IServiceCollection services,
 		Func<IServiceProvider, ClickHouseQueryExecutorSettings> settingsProvider)
 	{
-		services.AddClickHouseQueryExecutor(builder.WorkflowKey, settingsProvider);
+		builder.ServiceCollection.AddClickHouseQueryExecutor(builder.WorkflowKey, settingsProvider);
 
 		return builder.WithSqlQueryExecutor<ClickHouseQueryExecutor>();
 	}
 
 	public static WorkflowServiceBuilder UseClickHouseQueryExecutor(
 		this WorkflowServiceBuilder builder,
-		IServiceCollection services,
 		Func<IServiceProvider, ClickHouseConnectionSettings> settingsProvider)
 	{
-		services.AddClickHouseQueryExecutor(builder.WorkflowKey, settingsProvider);
+		builder.ServiceCollection.AddClickHouseQueryExecutor(builder.WorkflowKey, settingsProvider);
 
 		return builder.WithSqlQueryExecutor<ClickHouseQueryExecutor>();
 	}

@@ -9,19 +9,16 @@ public static class BuilderExtensions
 {
 	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(
 		this Prompt2PlotBuilder builder,
-		IServiceCollection services,
 		Func<IServiceProvider, InMemoryWorkItemRepositorySettings> settingsProvider)
 	{
-		services.AddInMemoryWorkItemRepository(settingsProvider);
+		builder.ServiceCollection.AddInMemoryWorkItemRepository(settingsProvider);
 
 		return builder.WithWorkItemRepository<InMemoryWorkItemRepository>();
 	}
 
-	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(
-		this Prompt2PlotBuilder builder,
-		IServiceCollection services)
+	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(this Prompt2PlotBuilder builder)
 	{
-		services.AddInMemoryWorkItemRepository();
+		builder.ServiceCollection.AddInMemoryWorkItemRepository();
 
 		return builder.WithWorkItemRepository<InMemoryWorkItemRepository>();
 	}

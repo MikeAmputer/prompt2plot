@@ -7,7 +7,14 @@ public sealed class Prompt2PlotBuilder
 	private OptionalValue<Func<IServiceProvider, IWorkItemRepository>> _workItemRepositoryFactory;
 	private readonly Dictionary<string, Action<WorkflowServiceBuilder>> _workflows = [];
 
-	internal Prompt2PlotBuilder() { }
+	internal IServiceCollection ServiceCollection { get; }
+
+	internal Prompt2PlotBuilder(IServiceCollection serviceCollection)
+	{
+		ArgumentNullException.ThrowIfNull(serviceCollection);
+
+		ServiceCollection = serviceCollection;
+	}
 
 	public Prompt2PlotBuilder WithWorkItemRepository<TRepository>()
 		where TRepository : class, IWorkItemRepository
@@ -68,19 +75,19 @@ public sealed class Prompt2PlotBuilder
 		}
 	}
 
-	internal void Build(IServiceCollection serviceCollection)
+	internal void Build()
 	{
-		serviceCollection.ThrowIfRegistered<IWorkItemRepository>();
+		ServiceCollection.ThrowIfRegistered<IWorkItemRepository>();
 
 		var workItemRepositoryFactory = _workItemRepositoryFactory
 			.NotNullOrThrow(nameof(_workItemRepositoryFactory));
-		serviceCollection.AddTransient(workItemRepositoryFactory);
+		ServiceCollection.AddTransient(workItemRepositoryFactory);
 
 		foreach (var (key, workflowSetup) in _workflows)
 		{
-			var workflowServiceBuilder = new WorkflowServiceBuilder(key);
+			var workflowServiceBuilder = new WorkflowServiceBuilder(ServiceCollection, key);
 			workflowSetup(workflowServiceBuilder);
-			workflowServiceBuilder.Build(serviceCollection);
+			workflowServiceBuilder.Build();
 		}
 	}
 }
