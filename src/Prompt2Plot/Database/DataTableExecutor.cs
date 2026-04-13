@@ -7,6 +7,8 @@ public abstract class DataTableExecutor : ISqlQueryExecutor
 	protected abstract Task<DataTable> ExecuteDataTableAsync(string sqlQuery, CancellationToken cancellationToken);
 	protected virtual Dictionary<Type, PlotFieldType> AdditionalTypeMappings => [];
 
+	public ushort MaxParallelQueries { get; protected init; } = 1;
+
 	public async Task<DatabaseResponse> ExecuteAsync(string sqlQuery, CancellationToken cancellationToken)
 	{
 		try

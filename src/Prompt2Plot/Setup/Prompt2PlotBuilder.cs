@@ -4,7 +4,6 @@ namespace Prompt2Plot;
 
 public sealed class Prompt2PlotBuilder
 {
-	private Action<IServiceCollection> _register = _ => { };
 	private OptionalValue<Func<IServiceProvider, IWorkItemRepository>> _workItemRepositoryFactory;
 	private readonly Dictionary<string, Action<WorkflowServiceBuilder>> _workflows = [];
 
@@ -12,8 +11,6 @@ public sealed class Prompt2PlotBuilder
 		where TRepository : class, IWorkItemRepository
 	{
 		_workItemRepositoryFactory.ThrowIfSet(nameof(_workItemRepositoryFactory));
-
-		_register += sc => sc.AddSingleton<TRepository>();
 
 		return WithWorkItemRepository(sp => sp.GetRequiredService<TRepository>());
 	}
@@ -55,12 +52,6 @@ public sealed class Prompt2PlotBuilder
 			throw new InvalidOperationException($"Workflow '{name}' already registered.");
 		}
 
-		_register += sc =>
-		{
-			sc.AddKeyedSingleton<TPromptExecutor>(name);
-			sc.AddKeyedSingleton<TSqlExecutor>(name);
-		};
-
 		return this;
 
 		void Builder(WorkflowServiceBuilder builder)
@@ -77,8 +68,6 @@ public sealed class Prompt2PlotBuilder
 
 	internal void Build(IServiceCollection serviceCollection)
 	{
-		_register(serviceCollection);
-
 		var workItemRepositoryFactory = _workItemRepositoryFactory
 			.NotNullOrThrow(nameof(_workItemRepositoryFactory));
 		serviceCollection.AddTransient(workItemRepositoryFactory);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace Prompt2Plot.Defaults;
 
@@ -32,50 +33,13 @@ namespace Prompt2Plot.Defaults;
 /// </item>
 /// </list>
 /// </para>
-/// <para>
-/// The class may be extended. Derived implementations may override
-/// configuration properties such as <see cref="UsePublisher"/>, <see cref="MaxPending"/>,
-/// <see cref="MaxResults"/>, and <see cref="MaxWaiters"/> to customize behavior.
-/// </para>
 /// </remarks>
-public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
+public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 {
-	/// <summary>
-	/// Gets a value indicating whether the repository should attempt to publish
-	/// newly added work items through <see cref="IWorkItemPublisher"/>.
-	/// </summary>
-	/// <remarks>
-	/// If enabled and the publisher successfully accepts the work item,
-	/// the item will not be stored in the local pending queue.
-	/// </remarks>
-	protected virtual bool UsePublisher => true;
-
-	/// <summary>
-	/// Gets the maximum number of pending work items stored in memory.
-	/// </summary>
-	/// <remarks>
-	/// When the number of pending items exceeds this limit, the oldest items
-	/// are removed to keep memory usage bounded.
-	/// </remarks>
-	protected virtual int MaxPending => 200;
-
-	/// <summary>
-	/// Gets the maximum number of completed work item results stored in memory.
-	/// </summary>
-	/// <remarks>
-	/// When the number of stored results exceeds this limit, the oldest results
-	/// are removed to keep memory usage bounded.
-	/// </remarks>
-	protected virtual int MaxResults => 200;
-
-	/// <summary>
-	/// Gets the maximum number of result waiters stored in memory.
-	/// </summary>
-	/// <remarks>
-	/// When the number of waiters exceeds this limit, the oldest waiters
-	/// are removed and completed with an exception.
-	/// </remarks>
-	protected virtual int MaxWaiters => 200;
+	private readonly bool _usePublisher;
+	private readonly uint _maxPending;
+	private readonly uint _maxResults;
+	private readonly uint _maxWaiters;
 
 	private readonly ConcurrentDictionary<ulong, WorkItem> _pending = new();
 	private readonly ConcurrentQueue<ulong> _pendingOrder = new();
@@ -102,9 +66,18 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 
 	private const int CompactionQueueSizeMultiplier = 10;
 
-	public DefaultInMemoryWorkItemRepository(IWorkItemPublisher publisher)
+	public InMemoryWorkItemRepository(
+		InMemoryWorkItemRepositorySettings settings,
+		IWorkItemPublisher publisher,
+		ILoggerFactory? loggerFactory = null)
 	{
+		ArgumentNullException.ThrowIfNull(settings);
 		ArgumentNullException.ThrowIfNull(publisher);
+
+		_usePublisher = settings.UsePublisher;
+		_maxPending = settings.MaxPending > 0 ? settings.MaxPending : uint.MaxValue;
+		_maxResults = settings.MaxResults > 0 ? settings.MaxResults : uint.MaxValue;
+		_maxWaiters = settings.MaxWaiters > 0 ? settings.MaxWaiters : uint.MaxValue;
 
 		_publisher = publisher;
 	}
@@ -121,7 +94,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 		var id = (ulong) Interlocked.Increment(ref _idCounter);
 		workItem.Id = id;
 
-		if (UsePublisher && _publisher != null)
+		if (_usePublisher && _publisher != null)
 		{
 			if (_publisher.TryPublish(workItem))
 			{
@@ -137,9 +110,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 	/// <inheritdoc />
 	public Task<IOrderedEnumerable<WorkItem>> GetPendingWorkItemsAsync(CancellationToken cancellationToken)
 	{
-		var result = _pending
-			.Select(x => x.Value)
-			.OrderBy(x => x.Id);
+		var result = _pending.Values.OrderBy(x => x.Id);
 
 		return Task.FromResult(result);
 	}
@@ -206,7 +177,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 	/// <see cref="AddWorkItemResultAsync"/> is called for the same work item.
 	/// </para>
 	/// <para>
-	/// The number of concurrent waiters is bounded by <see cref="MaxWaiters"/>.
+	/// The number of concurrent waiters is bounded by <see cref="_maxWaiters"/>.
 	/// When this limit is exceeded, the oldest waiters are evicted and their
 	/// tasks complete with an exception.
 	/// </para>
@@ -217,7 +188,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 	/// </exception>
 	/// <exception cref="InvalidOperationException">
 	/// Thrown if the waiter is evicted because the repository exceeded
-	/// <see cref="MaxWaiters"/>.
+	/// <see cref="_maxWaiters"/>.
 	/// </exception>
 	public Task<WorkItemResult> WaitForResultAsync(ulong workItemId, CancellationToken cancellationToken)
 	{
@@ -273,7 +244,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 
 	private sealed class WaiterCancellationState
 	{
-		public required DefaultInMemoryWorkItemRepository Repo;
+		public required InMemoryWorkItemRepository Repo;
 		public ulong WorkItemId;
 		public CancellationToken Token;
 	}
@@ -294,7 +265,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 		{
 			_pendingOrder.Enqueue(workItem.Id);
 
-			while (_pending.Count > MaxPending && _pendingOrder.TryDequeue(out var oldest))
+			while (_pending.Count > _maxPending && _pendingOrder.TryDequeue(out var oldest))
 			{
 				_pending.TryRemove(oldest, out _);
 			}
@@ -305,7 +276,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 
 	private void EvictExcessiveResults()
 	{
-		while (_results.Count > MaxResults && _resultsOrder.TryDequeue(out var oldest))
+		while (_results.Count > _maxResults && _resultsOrder.TryDequeue(out var oldest))
 		{
 			_results.TryRemove(oldest, out _);
 		}
@@ -313,7 +284,7 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 
 	private void EvictExcessiveWaiters()
 	{
-		while (_waiters.Count > MaxWaiters && _waitersOrder.TryDequeue(out var oldest))
+		while (_waiters.Count > _maxWaiters && _waitersOrder.TryDequeue(out var oldest))
 		{
 			if (_waiters.TryRemove(oldest, out var waiter))
 			{
@@ -327,14 +298,14 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 
 	private void CompactWaiterQueueIfNeeded()
 	{
-		if (_waitersOrder.Count < MaxWaiters * CompactionQueueSizeMultiplier)
+		if (_waitersOrder.Count < _maxWaiters * CompactionQueueSizeMultiplier)
 		{
 			return;
 		}
 
 		lock (_waiterCompactionLock)
 		{
-			if (_waitersOrder.Count < MaxWaiters * CompactionQueueSizeMultiplier)
+			if (_waitersOrder.Count < _maxWaiters * CompactionQueueSizeMultiplier)
 			{
 				return;
 			}
@@ -350,14 +321,14 @@ public class DefaultInMemoryWorkItemRepository : IWorkItemRepository
 
 	private void CompactPendingQueueIfNeeded()
 	{
-		if (_pendingOrder.Count < MaxPending * CompactionQueueSizeMultiplier)
+		if (_pendingOrder.Count < _maxPending * CompactionQueueSizeMultiplier)
 		{
 			return;
 		}
 
 		lock (_pendingCompactionLock)
 		{
-			if (_pendingOrder.Count < MaxPending * CompactionQueueSizeMultiplier)
+			if (_pendingOrder.Count < _maxPending * CompactionQueueSizeMultiplier)
 			{
 				return;
 			}

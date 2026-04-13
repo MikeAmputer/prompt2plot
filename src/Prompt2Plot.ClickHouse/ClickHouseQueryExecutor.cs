@@ -3,19 +3,36 @@ using ClickHouse.Driver.ADO;
 using ClickHouse.Driver.ADO.Adapters;
 using ClickHouse.Driver.Numerics;
 using ClickHouse.Driver.Utility;
+using Microsoft.Extensions.Logging;
 
 namespace Prompt2Plot.ClickHouse;
 
-public abstract class ClickHouseQueryExecutorBase : DataTableExecutor
+public sealed class ClickHouseQueryExecutor : DataTableExecutor
 {
-	protected abstract string ConnectionString { get; }
-	protected abstract IHttpClientFactory HttpClientFactory { get; }
-	protected abstract string HttpClientName { get; }
+	private readonly string _connectionString;
+	private readonly IHttpClientFactory _httpClientFactory;
+	private readonly string _httpClientName;
 
 	protected override Dictionary<Type, PlotFieldType> AdditionalTypeMappings => new()
 	{
 		{ typeof(ClickHouseDecimal), PlotFieldType.Number }
 	};
+
+	public ClickHouseQueryExecutor(
+		ClickHouseQueryExecutorSettings settings,
+		ILoggerFactory? loggerFactory = null)
+	{
+		ArgumentNullException.ThrowIfNull(settings);
+		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);
+		ArgumentNullException.ThrowIfNull(settings.ConnectionSettings.HttpClientFactory);
+		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);
+
+		_connectionString = settings.ConnectionSettings.ConnectionString;
+		_httpClientFactory = settings.ConnectionSettings.HttpClientFactory;
+		_httpClientName = settings.ConnectionSettings.HttpClientName;
+
+		MaxParallelQueries = settings.MaxParallelQueries > 0 ? settings.MaxParallelQueries : ushort.MaxValue;
+	}
 
 	protected override async Task<DataTable> ExecuteDataTableAsync(string sqlQuery, CancellationToken cancellationToken)
 	{
@@ -24,9 +41,9 @@ public abstract class ClickHouseQueryExecutorBase : DataTableExecutor
 		var queryId = Guid.NewGuid().ToString();
 
 		await using var clickHouseConnection = new ClickHouseConnection(
-			ConnectionString,
-			HttpClientFactory,
-			HttpClientName);
+			_connectionString,
+			_httpClientFactory,
+			_httpClientName);
 
 		await using var command = clickHouseConnection.CreateCommand();
 		using var adapter = new ClickHouseDataAdapter();
@@ -49,9 +66,9 @@ public abstract class ClickHouseQueryExecutorBase : DataTableExecutor
 		try
 		{
 			using var clickHouseConnection = new ClickHouseConnection(
-				ConnectionString,
-				HttpClientFactory,
-				HttpClientName);
+				_connectionString,
+				_httpClientFactory,
+				_httpClientName);
 
 			using var command = clickHouseConnection.CreateCommand();
 

@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Prompt2Plot.Defaults;
 
 namespace Prompt2Plot;
 
@@ -19,5 +21,26 @@ public static class ServiceCollectionExtensions
 		builder.Build(serviceCollection);
 
 		return serviceCollection;
+	}
+
+	public static IServiceCollection AddInMemoryWorkItemRepository(
+		this IServiceCollection serviceCollection,
+		Func<IServiceProvider, InMemoryWorkItemRepositorySettings> settingsProvider)
+	{
+		ArgumentNullException.ThrowIfNull(serviceCollection);
+		ArgumentNullException.ThrowIfNull(settingsProvider);
+
+		serviceCollection.AddSingleton<InMemoryWorkItemRepository>(
+			sp => new InMemoryWorkItemRepository(
+				settingsProvider(sp),
+				sp.GetRequiredService<IWorkItemPublisher>(),
+				sp.GetService<ILoggerFactory>()));
+
+		return serviceCollection;
+	}
+
+	public static IServiceCollection AddInMemoryWorkItemRepository(this IServiceCollection serviceCollection)
+	{
+		return serviceCollection.AddInMemoryWorkItemRepository(_ => new InMemoryWorkItemRepositorySettings());
 	}
 }

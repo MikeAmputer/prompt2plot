@@ -41,13 +41,23 @@ public sealed class WorkflowServiceBuilder : IStrictWorkflowServiceBuilder
 		return WithValidationPipeline(setup);
 	}
 
+	public WorkflowServiceBuilder WithPromptExecutor<T>()
+		where T : IPromptExecutor
+	{
+		_promptExecutorFactory.ThrowIfSet(nameof(_promptExecutorFactory));
+		_promptExecutorFactory = new OptionalValue<Func<IServiceProvider, object?, IPromptExecutor>>(
+			(sp, key) => sp.GetRequiredKeyedService<T>(key));
+
+		return this;
+	}
+
 	public WorkflowServiceBuilder WithPromptExecutor(Func<IServiceProvider, IPromptExecutor> factory)
 	{
 		ArgumentNullException.ThrowIfNull(factory);
 
 		_promptExecutorFactory.ThrowIfSet(nameof(_promptExecutorFactory));
-		_promptExecutorFactory =
-			new OptionalValue<Func<IServiceProvider, object?, IPromptExecutor>>((sp, _) => factory(sp));
+		_promptExecutorFactory = new OptionalValue<Func<IServiceProvider, object?, IPromptExecutor>>(
+			(sp, _) => factory(sp));
 
 		return this;
 	}
@@ -62,13 +72,23 @@ public sealed class WorkflowServiceBuilder : IStrictWorkflowServiceBuilder
 		return this;
 	}
 
+	public WorkflowServiceBuilder WithSqlQueryExecutor<T>()
+		where T : ISqlQueryExecutor
+	{
+		_sqlQueryExecutorFactory.ThrowIfSet(nameof(_sqlQueryExecutorFactory));
+		_sqlQueryExecutorFactory = new OptionalValue<Func<IServiceProvider, object?, ISqlQueryExecutor>>(
+				(sp, key) => sp.GetRequiredKeyedService<T>(key));
+
+		return this;
+	}
+
 	public WorkflowServiceBuilder WithSqlQueryExecutor(Func<IServiceProvider, ISqlQueryExecutor> factory)
 	{
 		ArgumentNullException.ThrowIfNull(factory);
 
 		_sqlQueryExecutorFactory.ThrowIfSet(nameof(_sqlQueryExecutorFactory));
-		_sqlQueryExecutorFactory =
-			new OptionalValue<Func<IServiceProvider, object?, ISqlQueryExecutor>>((sp, _) => factory(sp));
+		_sqlQueryExecutorFactory = new OptionalValue<Func<IServiceProvider, object?, ISqlQueryExecutor>>(
+			(sp, _) => factory(sp));
 
 		return this;
 	}
@@ -106,9 +126,9 @@ public sealed class WorkflowServiceBuilder : IStrictWorkflowServiceBuilder
 		}
 
 		var promptExecutorFactory = _promptExecutorFactory.NotNullOrThrow(nameof(_promptExecutorFactory));
-		serviceCollection.AddKeyedTransient<IPromptExecutor>(key, (sp, sk) => promptExecutorFactory(sp, sk));
+		serviceCollection.AddKeyedTransient(key, promptExecutorFactory);
 
 		var sqlQueryExecutorFactory = _sqlQueryExecutorFactory.NotNullOrThrow(nameof(_sqlQueryExecutorFactory));
-		serviceCollection.AddKeyedTransient<ISqlQueryExecutor>(key, (sp, sk) => sqlQueryExecutorFactory(sp, sk));
+		serviceCollection.AddKeyedTransient(key, sqlQueryExecutorFactory);
 	}
 }
