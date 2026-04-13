@@ -1,7 +1,16 @@
-﻿namespace Prompt2Plot.Defaults;
+﻿using Microsoft.Extensions.Logging;
 
-public class DefaultModelResponseValidator : IValidationPipelineStage
+namespace Prompt2Plot.Defaults;
+
+public sealed class DefaultModelResponseValidator : IValidationPipelineStage
 {
+	public DefaultModelResponseValidator(
+		DefaultModelResponseValidatorSettings settings,
+		ILoggerFactory? loggerFactory = null)
+	{
+
+	}
+
 	public Task ExecuteAsync(ValidationContext context, CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrEmpty(context.ModelResponse.ChartType))

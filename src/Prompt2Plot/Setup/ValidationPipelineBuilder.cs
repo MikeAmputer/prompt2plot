@@ -15,6 +15,14 @@ public sealed class ValidationPipelineBuilder
 		return this;
 	}
 
+	public ValidationPipelineBuilder AddStage<TStage>(Func<IServiceProvider, object?, TStage> factory)
+		where TStage : class, IValidationPipelineStage
+	{
+		_stageRegistry.AddStage(factory);
+
+		return this;
+	}
+
 	public ValidationPipelineBuilder WithMaxRetries(int maxRetries)
 	{
 		if (maxRetries < 0)

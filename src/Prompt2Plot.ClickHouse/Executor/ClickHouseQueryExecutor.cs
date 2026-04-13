@@ -23,6 +23,7 @@ public sealed class ClickHouseQueryExecutor : DataTableExecutor
 		ILoggerFactory? loggerFactory = null)
 	{
 		ArgumentNullException.ThrowIfNull(settings);
+		ArgumentNullException.ThrowIfNull(settings.ConnectionSettings);
 		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);
 		ArgumentNullException.ThrowIfNull(settings.ConnectionSettings.HttpClientFactory);
 		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);

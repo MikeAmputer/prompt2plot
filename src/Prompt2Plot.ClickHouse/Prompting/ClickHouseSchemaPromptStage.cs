@@ -8,33 +8,54 @@ using Prompt2Plot.ClickHouse.Logging;
 
 namespace Prompt2Plot.ClickHouse;
 
-public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
+public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 {
-	protected abstract string ConnectionString { get; }
-	protected abstract IHttpClientFactory HttpClientFactory { get; }
-	protected abstract string HttpClientName { get; }
+	private readonly string _connectionString;
+	private readonly IHttpClientFactory _httpClientFactory;
+	private readonly string _httpClientName;
 
-	protected abstract string[] IncludedDatabases { get; }
-	protected virtual (string database, string table)[] IncludedTables => [];
-	protected virtual (string database, string table)[] ExcludedTables => [];
-	protected virtual string[] ExcludedEngines => ["MaterializedView"];
+	private readonly string[] _includedDatabases;
+	private readonly (string database, string table)[] _includedTables;
+	private readonly (string database, string table)[] _excludedTables;
+	private readonly string[] _excludedEngines;
 
 	private volatile string _cachedPrompt = string.Empty;
 	private readonly Stopwatch _cacheTimer = new();
 	private readonly SemaphoreSlim _cacheSemaphore = new(1, 1);
-	protected virtual TimeSpan CacheDuration => TimeSpan.FromMinutes(30);
+	private readonly TimeSpan _cacheDuration;
 
 	private readonly ILogger _logger;
 
-	protected ClickHouseSchemaPromptStageBase(ILoggerFactory? loggerFactory = null)
+	public ClickHouseSchemaPromptStage(
+		ClickHouseSchemaPromptStageSettings settings,
+		ILoggerFactory? loggerFactory = null)
 	{
+		ArgumentNullException.ThrowIfNull(settings);
+		ArgumentNullException.ThrowIfNull(settings.ConnectionSettings);
+		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);
+		ArgumentNullException.ThrowIfNull(settings.ConnectionSettings.HttpClientFactory);
+		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);
+
+		_connectionString = settings.ConnectionSettings.ConnectionString;
+		_httpClientFactory = settings.ConnectionSettings.HttpClientFactory;
+		_httpClientName = settings.ConnectionSettings.HttpClientName;
+
+		_includedDatabases = settings.IncludedDatabases.Length > 0
+			? settings.IncludedDatabases
+			: throw new InvalidOperationException("No ClickHouse databases included.");
+
+		_includedTables = settings.IncludedTables;
+		_excludedTables = settings.ExcludedTables;
+		_excludedEngines = settings.ExcludedEngines;
+		_cacheDuration = settings.CacheDuration;
+
 		var logFactory = loggerFactory ?? NullLoggerFactory.Instance;
-		_logger = logFactory.CreateLogger<ClickHouseSchemaPromptStageBase>();
+		_logger = logFactory.CreateLogger<ClickHouseSchemaPromptStage>();
 	}
 
 	public async Task ExecuteAsync(PromptContext context, CancellationToken cancellationToken)
 	{
-		if (!_cacheTimer.IsRunning || _cacheTimer.Elapsed >= CacheDuration)
+		if (!_cacheTimer.IsRunning || _cacheTimer.Elapsed >= _cacheDuration)
 		{
 			await UpdateCachedPrompt(cancellationToken);
 		}
@@ -54,15 +75,15 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 		await _cacheSemaphore.WaitAsync(cancellationToken);
 		try
 		{
-			if (_cacheTimer.IsRunning && _cacheTimer.Elapsed < CacheDuration)
+			if (_cacheTimer.IsRunning && _cacheTimer.Elapsed < _cacheDuration)
 			{
 				return;
 			}
 
 			await using var clickHouseConnection = new ClickHouseConnection(
-				ConnectionString,
-				HttpClientFactory,
-				HttpClientName);
+				_connectionString,
+				_httpClientFactory,
+				_httpClientName);
 
 			var tables = await FetchTables(clickHouseConnection, cancellationToken);
 			await FetchColumns(clickHouseConnection, tables, cancellationToken);
@@ -103,30 +124,30 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 		await using var command = clickHouseConnection.CreateCommand();
 
 		var whereExpression = "is_temporary = 0 AND database IN ({includedDatabases:Array(String)})";
-		command.AddParameter("includedDatabases", IncludedDatabases);
+		command.AddParameter("includedDatabases", _includedDatabases);
 
-		if (ExcludedEngines.Length != 0)
+		if (_excludedEngines.Length != 0)
 		{
 			whereExpression += " AND engine NOT IN ({excludedEngines:Array(String)})";
-			command.AddParameter("excludedEngines", ExcludedEngines);
+			command.AddParameter("excludedEngines", _excludedEngines);
 		}
 
-		if (ExcludedTables.Length != 0)
+		if (_excludedTables.Length != 0)
 		{
 			whereExpression += " AND (database, name) NOT IN ({excludedTables:Array(Tuple(String, String))})";
 			command.AddParameter(
 				"excludedTables",
-				ExcludedTables
+				_excludedTables
 					.Select(t => Tuple.Create(t.database, t.table))
 					.ToArray());
 		}
 
-		if (IncludedTables.Length != 0)
+		if (_includedTables.Length != 0)
 		{
 			whereExpression += " AND (database, name) IN ({includedTables:Array(Tuple(String, String))})";
 			command.AddParameter(
 				"includedTables",
-				IncludedTables
+				_includedTables
 					.Select(t => Tuple.Create(t.database, t.table))
 					.ToArray());
 		}
@@ -152,24 +173,24 @@ public abstract class ClickHouseSchemaPromptStageBase : IPromptPipelineStage
 		await using var command = clickHouseConnection.CreateCommand();
 
 		var whereExpression = "database IN ({includedDatabases:Array(String)})";
-		command.AddParameter("includedDatabases", IncludedDatabases);
+		command.AddParameter("includedDatabases", _includedDatabases);
 
-		if (ExcludedTables.Length != 0)
+		if (_excludedTables.Length != 0)
 		{
 			whereExpression += " AND (database, table) NOT IN ({excludedTables:Array(Tuple(String, String))})";
 			command.AddParameter(
 				"excludedTables",
-				ExcludedTables
+				_excludedTables
 					.Select(t => Tuple.Create(t.database, t.table))
 					.ToArray());
 		}
 
-		if (IncludedTables.Length != 0)
+		if (_includedTables.Length != 0)
 		{
 			whereExpression += " AND (database, table) IN ({includedTables:Array(Tuple(String, String))})";
 			command.AddParameter(
 				"includedTables",
-				IncludedTables
+				_includedTables
 					.Select(t => Tuple.Create(t.database, t.table))
 					.ToArray());
 		}

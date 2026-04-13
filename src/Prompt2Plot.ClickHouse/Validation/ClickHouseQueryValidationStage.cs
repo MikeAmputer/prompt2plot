@@ -1,12 +1,28 @@
 ﻿using ClickHouse.Driver;
+using Microsoft.Extensions.Logging;
 
 namespace Prompt2Plot.ClickHouse;
 
-public abstract class ClickHouseQueryValidationStageBase : IValidationPipelineStage
+public sealed class ClickHouseQueryValidationStage : IValidationPipelineStage
 {
-	protected abstract string ConnectionString { get; }
-	protected abstract IHttpClientFactory HttpClientFactory { get; }
-	protected abstract string HttpClientName { get; }
+	private readonly string _connectionString;
+	private readonly IHttpClientFactory _httpClientFactory;
+	private readonly string _httpClientName;
+
+	public ClickHouseQueryValidationStage(
+		ClickHouseQueryValidationStageSettings settings,
+		ILoggerFactory? loggerFactory = null)
+	{
+		ArgumentNullException.ThrowIfNull(settings);
+		ArgumentNullException.ThrowIfNull(settings.ConnectionSettings);
+		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);
+		ArgumentNullException.ThrowIfNull(settings.ConnectionSettings.HttpClientFactory);
+		ArgumentException.ThrowIfNullOrWhiteSpace(settings.ConnectionSettings.ConnectionString);
+
+		_connectionString = settings.ConnectionSettings.ConnectionString;
+		_httpClientFactory = settings.ConnectionSettings.HttpClientFactory;
+		_httpClientName = settings.ConnectionSettings.HttpClientName;
+	}
 
 	public async Task ExecuteAsync(ValidationContext context, CancellationToken cancellationToken)
 	{
@@ -37,9 +53,9 @@ public abstract class ClickHouseQueryValidationStageBase : IValidationPipelineSt
 		}
 
 		using var clickHouseConnection = new ClickHouseClient(
-			ConnectionString,
-			HttpClientFactory,
-			HttpClientName);
+			_connectionString,
+			_httpClientFactory,
+			_httpClientName);
 
 		foreach (var query in queries)
 		{

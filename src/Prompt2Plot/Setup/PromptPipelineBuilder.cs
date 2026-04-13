@@ -14,6 +14,14 @@ public sealed class PromptPipelineBuilder
 		return this;
 	}
 
+	public PromptPipelineBuilder AddStage<TStage>(Func<IServiceProvider, object?, TStage> factory)
+		where TStage : class, IPromptPipelineStage
+	{
+		_stageRegistry.AddStage(factory);
+
+		return this;
+	}
+
 	internal void Build(IServiceCollection serviceCollection, string key)
 	{
 		ArgumentNullException.ThrowIfNull(serviceCollection);

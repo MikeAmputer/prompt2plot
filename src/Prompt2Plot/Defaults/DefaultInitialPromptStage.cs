@@ -1,21 +1,23 @@
-﻿namespace Prompt2Plot.Defaults;
+﻿using Microsoft.Extensions.Logging;
 
-public abstract class InitialPromptStageBase : IPromptPipelineStage
+namespace Prompt2Plot.Defaults;
+
+public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 {
-	protected abstract string SqlDialect { get; }
-	protected abstract IChartType[] SupportedChartTypes { get; }
-
 	private readonly Lazy<string> _prompt;
 
-	protected InitialPromptStageBase()
+	public DefaultInitialPromptStage(DefaultInitialPromptStageSettings settings, ILoggerFactory? loggerFactory = null)
 	{
+		var sqlDialect = settings.SqlDialect;
+		var supportedChartTypes = settings.SupportedChartTypes;
+
 		_prompt = new Lazy<string>(() =>
 			{
 				var chartTypeList = string.Join(
 					Environment.NewLine,
-					SupportedChartTypes.Select(ct => $"- {ct.ToPromptString()}"));
+					supportedChartTypes.Select(ct => $"- {ct.ToPromptString()}"));
 
-				return string.Format(Template, SqlDialect, chartTypeList);
+				return string.Format(Template, sqlDialect, chartTypeList);
 			},
 			isThreadSafe: true);
 	}

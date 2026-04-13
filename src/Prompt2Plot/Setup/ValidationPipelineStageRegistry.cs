@@ -5,38 +5,39 @@ namespace Prompt2Plot;
 
 internal sealed class ValidationPipelineStageRegistry
 {
-	private readonly HashSet<Type> _stages = [];
-	private readonly List<Type> _orderedStages = [];
+	private readonly HashSet<Type> _stageTypes = [];
+	private readonly List<Func<IServiceProvider, object?, IValidationPipelineStage>> _factories = [];
 
-	public void AddStage<TStage>()
+	public void AddStage<TStage>(Func<IServiceProvider, object?, TStage> factory)
 		where TStage : class, IValidationPipelineStage
 	{
-		if (!_stages.Add(typeof(TStage)))
+		if (!_stageTypes.Add(typeof(TStage)))
 		{
 			throw new InvalidOperationException($"Validation stage of type {typeof(TStage)} is already registered.");
 		}
 
-		_orderedStages.Add(typeof(TStage));
+		_factories.Add(factory);
+	}
+
+	public void AddStage<TStage>()
+		where TStage : class, IValidationPipelineStage
+	{
+		AddStage<TStage>((sp, key) => sp.GetRequiredKeyedService<TStage>(key));
 	}
 
 	public bool Any()
 	{
-		return _stages.Count != 0;
+		return _stageTypes.Count != 0;
 	}
 
 	public IEnumerable<IValidationPipelineStage> GetStages(IServiceProvider serviceProvider, object? key)
 	{
-		return _orderedStages.Select(t =>
-		{
-			var service = serviceProvider.GetRequiredKeyedService(t, key);
-
-			return (IValidationPipelineStage) service;
-		});
+		return _factories.Select(factory => factory(serviceProvider, key));
 	}
 
 	public void RegisterStages(IServiceCollection serviceCollection, object? key)
 	{
-		foreach (var stage in _stages)
+		foreach (var stage in _stageTypes)
 		{
 			serviceCollection.AddKeyedSingleton(stage, key);
 		}

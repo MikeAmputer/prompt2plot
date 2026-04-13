@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
-namespace Prompt2Plot.Defaults;
+namespace Prompt2Plot.InMemory;
 
 /// <summary>
 /// A default in-memory implementation of <see cref="IWorkItemRepository"/>.

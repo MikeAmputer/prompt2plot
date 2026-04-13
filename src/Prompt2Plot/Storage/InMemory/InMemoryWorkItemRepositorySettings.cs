@@ -1,4 +1,4 @@
-﻿namespace Prompt2Plot.Defaults;
+﻿namespace Prompt2Plot.InMemory;
 
 public sealed class InMemoryWorkItemRepositorySettings
 {
@@ -20,7 +20,7 @@ public sealed class InMemoryWorkItemRepositorySettings
 	/// are removed to keep memory usage bounded.
 	/// Set to <c>0</c> to disable the limit.
 	/// </remarks>
-	public uint MaxPending { get; init; } = 200;
+	public uint MaxPending { get; init; } = 256;
 
 	/// <summary>
 	/// Gets the maximum number of completed work item results stored in memory.
@@ -30,7 +30,7 @@ public sealed class InMemoryWorkItemRepositorySettings
 	/// are removed to keep memory usage bounded.
 	/// Set to <c>0</c> to disable the limit.
 	/// </remarks>
-	public uint MaxResults { get; init; } = 200;
+	public uint MaxResults { get; init; } = 256;
 
 	/// <summary>
 	/// Gets the maximum number of result waiters stored in memory.
@@ -40,5 +40,5 @@ public sealed class InMemoryWorkItemRepositorySettings
 	/// are removed and completed with an exception.
 	/// Set to <c>0</c> to disable the limit.
 	/// </remarks>
-	public uint MaxWaiters { get; init; } = 200;
+	public uint MaxWaiters { get; init; } = 256;
 }
