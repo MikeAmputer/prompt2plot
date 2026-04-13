@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Prompt2Plot.Defaults;
 using Prompt2Plot.InMemory;
 
 namespace Prompt2Plot;
@@ -11,6 +10,11 @@ public static class ServiceCollectionExtensions
 		this IServiceCollection serviceCollection,
 		Action<Prompt2PlotBuilder> setup)
 	{
+		serviceCollection.ThrowIfRegistered<WorkflowFactory>();
+		serviceCollection.ThrowIfRegistered<IWorkflowExecutionService>();
+		serviceCollection.ThrowIfRegistered<WorkItemPublisher>();
+		serviceCollection.ThrowIfRegistered<IWorkItemPublisher>();
+
 		serviceCollection.AddSingleton<WorkflowFactory>();
 		serviceCollection.AddSingleton<IWorkflowExecutionService, WorkflowExecutionService>();
 
@@ -30,6 +34,8 @@ public static class ServiceCollectionExtensions
 	{
 		ArgumentNullException.ThrowIfNull(serviceCollection);
 		ArgumentNullException.ThrowIfNull(settingsProvider);
+
+		serviceCollection.ThrowIfRegistered<InMemoryWorkItemRepository>();
 
 		serviceCollection.AddSingleton<InMemoryWorkItemRepository>(
 			sp => new InMemoryWorkItemRepository(

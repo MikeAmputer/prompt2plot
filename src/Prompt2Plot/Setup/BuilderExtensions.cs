@@ -1,11 +1,31 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Prompt2Plot.Defaults;
+using Prompt2Plot.InMemory;
 
 namespace Prompt2Plot;
 
 public static class BuilderExtensions
 {
+	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(
+		this Prompt2PlotBuilder builder,
+		IServiceCollection services,
+		Func<IServiceProvider, InMemoryWorkItemRepositorySettings> settingsProvider)
+	{
+		services.AddInMemoryWorkItemRepository(settingsProvider);
+
+		return builder.WithWorkItemRepository<InMemoryWorkItemRepository>();
+	}
+
+	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(
+		this Prompt2PlotBuilder builder,
+		IServiceCollection services)
+	{
+		services.AddInMemoryWorkItemRepository();
+
+		return builder.WithWorkItemRepository<InMemoryWorkItemRepository>();
+	}
+
 	public static PromptPipelineBuilder AddInitialPromptStage(
 		this PromptPipelineBuilder builder,
 		Func<IServiceProvider, object?, DefaultInitialPromptStageSettings> settingsProvider)

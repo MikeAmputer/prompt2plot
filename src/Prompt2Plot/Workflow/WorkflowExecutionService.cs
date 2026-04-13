@@ -9,6 +9,7 @@ internal sealed class WorkflowExecutionService : IWorkflowExecutionService
 	private readonly WorkItemPublisher _workItemPublisher;
 	private readonly IWorkItemRepository _repository;
 
+	// TODO : bounded through configuration
 	private DeduplicatingWorkItemChannel _channel = new();
 
 	private readonly ThreadSafeBool _isInProcess = new();

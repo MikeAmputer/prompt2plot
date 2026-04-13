@@ -6,6 +6,8 @@ public sealed class PromptPipelineBuilder
 {
 	private readonly PromptPipelineStageRegistry _stageRegistry = new();
 
+	internal PromptPipelineBuilder() { }
+
 	public PromptPipelineBuilder AddStage<TStage>()
 		where TStage : class, IPromptPipelineStage
 	{

@@ -14,6 +14,8 @@ public static class ServiceCollectionExtensions
 		ArgumentException.ThrowIfNullOrWhiteSpace(flowName);
 		ArgumentNullException.ThrowIfNull(settingsProvider);
 
+		serviceCollection.ThrowIfRegistered<ClickHouseQueryExecutor>(flowName);
+
 		serviceCollection.AddKeyedSingleton<ClickHouseQueryExecutor>(
 			flowName,
 			(sp, _) => new ClickHouseQueryExecutor(

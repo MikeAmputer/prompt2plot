@@ -7,6 +7,8 @@ public sealed class ValidationPipelineBuilder
 	private readonly ValidationPipelineStageRegistry _stageRegistry = new();
 	private OptionalValue<int> _maxRetries;
 
+	internal ValidationPipelineBuilder() { }
+
 	public ValidationPipelineBuilder AddStage<TStage>()
 		where TStage : class, IValidationPipelineStage
 	{

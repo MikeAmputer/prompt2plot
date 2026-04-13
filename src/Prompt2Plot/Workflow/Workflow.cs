@@ -49,6 +49,7 @@ internal sealed class Workflow
 			return errorResult;
 		}
 
+		// TODO : prompt execution context; validate llm errors
 		var modelResponse = await _promptExecutor.ExecuteAsync(promptContext, cancellationToken);
 
 		var validationContext = new ValidationContext
