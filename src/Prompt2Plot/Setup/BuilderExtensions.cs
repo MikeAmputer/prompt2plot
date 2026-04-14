@@ -23,6 +23,40 @@ public static class BuilderExtensions
 		return builder.WithWorkItemRepository<InMemoryWorkItemRepository>();
 	}
 
+	/// <summary>
+	/// Adds the <see cref="DefaultInitialPromptStage"/> to the prompt pipeline.
+	/// </summary>
+	/// <remarks>
+	/// This stage generates the base system prompt that instructs the language model
+	/// how to convert a natural language request into SQL queries and a visualization
+	/// specification.
+	///
+	/// The prompt includes:
+	/// <list type="bullet">
+	/// <item><description>Instructions describing the model's role</description></item>
+	/// <item><description>The expected JSON response schema</description></item>
+	/// <item><description>The supported chart types and their dataset structures</description></item>
+	/// <item><description>General query generation guidelines</description></item>
+	/// </list>
+	///
+	/// The provided <paramref name="settingsProvider"/> allows resolving stage
+	/// configuration dynamically using the dependency injection container and
+	/// the workflow key.
+	///
+	/// This overload is typically used when configuration depends on runtime
+	/// services such as database providers, tenant configuration, or environment
+	/// settings.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="PromptPipelineBuilder"/> used to construct the prompt pipeline.
+	/// </param>
+	/// <param name="settingsProvider">
+	/// A delegate that resolves <see cref="DefaultInitialPromptStageSettings"/>
+	/// using the service provider and workflow key.
+	/// </param>
+	/// <returns>
+	/// The <see cref="PromptPipelineBuilder"/> so that additional stages can be chained.
+	/// </returns>
 	public static PromptPipelineBuilder AddInitialPromptStage(
 		this PromptPipelineBuilder builder,
 		Func<IServiceProvider, object?, DefaultInitialPromptStageSettings> settingsProvider)
@@ -33,6 +67,36 @@ public static class BuilderExtensions
 				sp.GetService<ILoggerFactory>()));
 	}
 
+	/// <summary>
+	/// Adds the <see cref="DefaultInitialPromptStage"/> to the prompt pipeline
+	/// using the provided settings instance.
+	/// </summary>
+	/// <remarks>
+	/// This stage generates the base system prompt that instructs the language model
+	/// how to convert a natural language request into SQL queries and a visualization
+	/// specification.
+	///
+	/// The prompt includes:
+	/// <list type="bullet">
+	/// <item><description>Instructions describing the model's role</description></item>
+	/// <item><description>The expected JSON response schema</description></item>
+	/// <item><description>The supported chart types and their dataset structures</description></item>
+	/// <item><description>General query generation guidelines</description></item>
+	/// </list>
+	///
+	/// This overload is intended for scenarios where the prompt configuration
+	/// is static and known during application startup.
+	/// settings.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="PromptPipelineBuilder"/> used to construct the prompt pipeline.
+	/// </param>
+	/// <param name="settings">
+	/// The configuration used to build the initial prompt.
+	/// </param>
+	/// <returns>
+	/// The <see cref="PromptPipelineBuilder"/> so that additional stages can be chained.
+	/// </returns>
 	public static PromptPipelineBuilder AddInitialPromptStage(
 		this PromptPipelineBuilder builder,
 		DefaultInitialPromptStageSettings settings)
@@ -43,6 +107,46 @@ public static class BuilderExtensions
 				sp.GetService<ILoggerFactory>()));
 	}
 
+	/// <summary>
+	/// Adds the <see cref="DefaultInitialPromptStage"/> to the prompt pipeline
+	/// using a simplified configuration.
+	/// </summary>
+	/// <remarks>
+	/// This stage generates the base system prompt that instructs the language model
+	/// how to convert a natural language request into SQL queries and a visualization
+	/// specification.
+	///
+	/// The prompt includes:
+	/// <list type="bullet">
+	/// <item><description>Instructions describing the model's role</description></item>
+	/// <item><description>The expected JSON response schema</description></item>
+	/// <item><description>The supported chart types and their dataset structures</description></item>
+	/// <item><description>General query generation guidelines</description></item>
+	/// </list>
+	///
+	/// This overload provides a convenient way to configure the initial prompt
+	/// when only the SQL dialect and optional chart types need to be specified.
+	///
+	/// Internally this method creates a <see cref="DefaultInitialPromptStageSettings"/>
+	/// instance using the provided parameters.
+	///
+	/// If <paramref name="supportedChartTypes"/> is not specified, the default
+	/// chart types defined by <see cref="DefaultInitialPromptStageSettings"/> are used.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="PromptPipelineBuilder"/> used to construct the prompt pipeline.
+	/// </param>
+	/// <param name="sqlDialect">
+	/// The SQL dialect used by the target database (for example: <c>ClickHouse</c>,
+	/// <c>PostgreSQL</c>, or <c>MySQL</c>).
+	/// </param>
+	/// <param name="supportedChartTypes">
+	/// Optional set of chart types supported by the workflow.
+	/// If not provided, default chart types will be used.
+	/// </param>
+	/// <returns>
+	/// The <see cref="PromptPipelineBuilder"/> so that additional stages can be chained.
+	/// </returns>
 	public static PromptPipelineBuilder AddInitialPromptStage(
 		this PromptPipelineBuilder builder,
 		string sqlDialect,

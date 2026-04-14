@@ -1,5 +1,18 @@
 ﻿namespace Prompt2Plot;
 
+/// <summary>
+/// Represents a pie chart visualization.
+/// </summary>
+/// <remarks>
+/// Pie charts display proportions of a whole using slices whose
+/// sizes correspond to numeric values.
+///
+/// Expected dataset fields:
+/// <list type="bullet">
+/// <item><description><c>label</c> — category name</description></item>
+/// <item><description><c>value</c> — numeric value representing the category portion</description></item>
+/// </list>
+/// </remarks>
 public class PieChartType : ChartTypeBase
 {
 	public override string Name => "pie";

@@ -2,7 +2,7 @@
 
 namespace Prompt2Plot.Logging;
 
-internal static partial class SqlQueryExecutor
+internal static partial class SqlQueryExecutorLogs
 {
 	[LoggerMessage(
 		EventId = 1,

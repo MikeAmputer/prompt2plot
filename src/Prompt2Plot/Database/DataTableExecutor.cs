@@ -92,7 +92,7 @@ public abstract class DataTableExecutor : ISqlQueryExecutor
 		}
 		catch (Exception ex)
 		{
-			SqlQueryExecutor.QueryExecutionFailed(_logger, ex);
+			SqlQueryExecutorLogs.QueryExecutionFailed(_logger, ex);
 
 			return new DatabaseResponse
 			{

@@ -40,7 +40,7 @@ public static class BuilderExtensions
 	/// </param>
 	/// <returns>The validation pipeline builder.</returns>
 	/// <remarks>
-	/// This stage executes explain plan for the generated SQL queries
+	/// This stage executes <c>EXPLAIN PLAN</c> for the generated SQL queries
 	/// to detect syntax or semantic errors.
 	/// </remarks>
 	public static ValidationPipelineBuilder AddClickHouseQueryValidationStage(

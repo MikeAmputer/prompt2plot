@@ -20,6 +20,11 @@ namespace Prompt2Plot.ClickHouse;
 /// <item><description>The SQL syntax is valid</description></item>
 /// <item><description>Referenced tables and columns exist</description></item>
 /// <item><description>The query can be successfully planned by ClickHouse</description></item>
+/// <item><description>
+/// The query is a <c>SELECT</c>-type query. Non-read queries such as
+/// <c>INSERT</c>, <c>ALTER</c>, or <c>DROP</c> will fail validation because
+/// they cannot be used with <c>EXPLAIN PLAN</c>.
+/// </description></item>
 /// </list>
 ///
 /// If validation fails:
