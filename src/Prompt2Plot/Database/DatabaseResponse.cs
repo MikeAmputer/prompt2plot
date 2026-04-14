@@ -11,18 +11,20 @@
 ///
 /// <list type="bullet">
 /// <item><description>
-/// <see cref="Fields"/> — metadata describing the columns returned by the query
+/// <see cref="Fields"/> — metadata describing the columns returned by the query.
+/// The order of fields defines the column index used in <see cref="Rows"/>.
 /// </description></item>
 /// <item><description>
-/// <see cref="Data"/> — row data represented as dictionaries keyed by column name
+/// <see cref="Rows"/> — row data represented as positional arrays.
+/// Each array element corresponds to the field at the same index in <see cref="Fields"/>.
 /// </description></item>
 /// <item><description>
-/// <see cref="Error"/> — an optional error message if query execution failed
+/// <see cref="Error"/> — an optional error message if query execution failed.
 /// </description></item>
 /// </list>
 ///
 /// When <see cref="Error"/> is not <c>null</c>, the query execution failed and
-/// <see cref="Fields"/> and <see cref="Data"/> may be empty.
+/// <see cref="Fields"/> and <see cref="Rows"/> may be empty.
 /// </remarks>
 [Serializable]
 public sealed class DatabaseResponse
@@ -33,13 +35,13 @@ public sealed class DatabaseResponse
 	public List<PlotField> Fields { get; set; } = [];
 
 	/// <summary>
-	/// Gets or sets the query result rows.
+	/// Gets or sets the returned rows.
 	/// </summary>
 	/// <remarks>
-	/// Each row is represented as a dictionary where the key is the column name
-	/// and the value is the corresponding column value.
+	/// Each row is represented as an array of values where the index corresponds
+	/// to the field at the same index in <see cref="Fields"/>.
 	/// </remarks>
-	public List<Dictionary<string, object?>> Data { get; set; } = [];
+	public List<object?[]> Rows { get; set; } = [];
 
 	/// <summary>
 	/// Gets the error message produced during query execution, if any.

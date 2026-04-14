@@ -24,7 +24,7 @@ namespace Prompt2Plot;
 /// <list type="bullet">
 /// <item><description>Column metadata extraction</description></item>
 /// <item><description>Type mapping to <see cref="PlotFieldType"/></description></item>
-/// <item><description>Row conversion to dictionary-based structures</description></item>
+/// <item><description>Row conversion to positional arrays</description></item>
 /// <item><description>Error handling and logging</description></item>
 /// </list>
 /// </remarks>
@@ -78,13 +78,14 @@ public abstract class DataTableExecutor : ISqlQueryExecutor
 
 			foreach (DataRow row in dataTable.Rows)
 			{
-				var dict = new Dictionary<string, object?>(dataTable.Columns.Count);
-				foreach (DataColumn column in dataTable.Columns)
+				var values = new object?[dataTable.Columns.Count];
+
+				for (var i = 0; i < dataTable.Columns.Count; i++)
 				{
-					dict[column.ColumnName] = row[column];
+					values[i] = row[i];
 				}
 
-				response.Data.Add(dict);
+				response.Rows.Add(values);
 			}
 
 			return response;

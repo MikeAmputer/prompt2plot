@@ -129,7 +129,7 @@ internal sealed class Workflow
 				SqlQuery = r.ModelResponse.SqlQuery,
 				Label = r.ModelResponse.Label,
 				Fields = r.DbResponse.Fields,
-				Data = r.DbResponse.Data,
+				Rows = r.DbResponse.Rows,
 				Error = r.DbResponse.Error,
 			})
 			.ToList();
