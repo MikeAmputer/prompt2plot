@@ -82,12 +82,13 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 		if (!_cacheTimer.IsRunning || string.IsNullOrWhiteSpace(_cachedPrompt))
 		{
 			context.Errors.Add("Unable to fetch ClickHouse database schema.");
-			;
 
 			return;
 		}
 
 		context.Prompt += _cachedPrompt;
+
+		SchemaPromptLogs.SchemaPromptAppended(_logger, _cachedPrompt.Length, context.Prompt.Length, context.WorkItemId);
 	}
 
 	private async Task UpdateCachedPrompt(CancellationToken cancellationToken)

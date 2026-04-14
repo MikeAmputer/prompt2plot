@@ -4,14 +4,39 @@ using ClickHouse.Driver.ADO.Adapters;
 using ClickHouse.Driver.Numerics;
 using ClickHouse.Driver.Utility;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Prompt2Plot.ClickHouse.Logging;
 
 namespace Prompt2Plot.ClickHouse;
 
+/// <summary>
+/// Executes SQL queries against ClickHouse and converts the results
+/// into <see cref="DatabaseResponse"/> objects suitable for visualization.
+/// </summary>
+/// <remarks>
+/// This executor is used by Prompt2Plot workflows to retrieve datasets
+/// produced by model-generated SQL queries.
+///
+/// Queries are executed using the ClickHouse HTTP driver and results are
+/// loaded into a <see cref="DataTable"/> before being transformed into
+/// visualization-friendly structures.
+///
+/// Features:
+///
+/// <list type="bullet">
+/// <item><description>Automatic type mapping from ClickHouse types to <see cref="PlotFieldType"/></description></item>
+/// <item><description>Support for concurrent dataset execution</description></item>
+/// <item><description>Query cancellation via ClickHouse <c>KILL QUERY</c></description></item>
+/// <item><description>Safe execution with query identifiers for observability</description></item>
+/// </list>
+/// </remarks>
 public sealed class ClickHouseQueryExecutor : DataTableExecutor
 {
 	private readonly string _connectionString;
 	private readonly IHttpClientFactory _httpClientFactory;
 	private readonly string _httpClientName;
+
+	private readonly ILogger _logger;
 
 	protected override Dictionary<Type, PlotFieldType> AdditionalTypeMappings => new()
 	{
@@ -33,37 +58,63 @@ public sealed class ClickHouseQueryExecutor : DataTableExecutor
 		_httpClientName = settings.ConnectionSettings.HttpClientName;
 
 		MaxParallelQueries = settings.MaxParallelQueries > 0 ? settings.MaxParallelQueries : ushort.MaxValue;
+
+		var logFactory = loggerFactory ?? NullLoggerFactory.Instance;
+		_logger = logFactory.CreateLogger<ClickHouseQueryExecutor>();
 	}
 
+	/// <inheritdoc />
+	/// <remarks>
+	/// A unique query identifier is generated for each execution. If the
+	/// <paramref name="cancellationToken"/> is triggered, the executor attempts
+	/// to terminate the running query using a ClickHouse <c>KILL QUERY</c> command.
+	/// </remarks>
 	protected override async Task<DataTable> ExecuteDataTableAsync(string sqlQuery, CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
 		var queryId = Guid.NewGuid().ToString();
 
-		await using var clickHouseConnection = new ClickHouseConnection(
-			_connectionString,
-			_httpClientFactory,
-			_httpClientName);
+		QueryExecutionLogs.QueryExecutionStarted(_logger, queryId);
 
-		await using var command = clickHouseConnection.CreateCommand();
-		using var adapter = new ClickHouseDataAdapter();
+		try
+		{
+			await using var clickHouseConnection = new ClickHouseConnection(
+				_connectionString,
+				_httpClientFactory,
+				_httpClientName);
 
-		command.CommandText = sqlQuery;
-		command.QueryId = queryId;
-		adapter.SelectCommand = command;
+			await using var command = clickHouseConnection.CreateCommand();
+			using var adapter = new ClickHouseDataAdapter();
 
-		// TODO: if cancellationToken.CanBeCanceled
-		await using var _ = cancellationToken.Register(() => TryKillQuery(queryId));
+			command.CommandText = sqlQuery;
+			command.QueryId = queryId;
+			adapter.SelectCommand = command;
 
-		var dataTable = new DataTable();
-		adapter.Fill(dataTable);
+			await using var _ = cancellationToken.CanBeCanceled
+				? cancellationToken.Register(() => TryKillQuery(queryId))
+				: default;
 
-		return dataTable;
+			var dataTable = new DataTable();
+			adapter.Fill(dataTable);
+
+			QueryExecutionLogs.QueryExecutionCompleted(_logger, queryId, dataTable.Rows.Count, dataTable.Columns.Count);
+
+			return dataTable;
+		}
+		catch (Exception ex)
+		{
+			QueryExecutionLogs.QueryExecutionFailed(_logger, queryId, ex);
+
+			// will be caught and saved as error in DataTableExecutor
+			throw;
+		}
 	}
 
 	private void TryKillQuery(string queryId)
 	{
+		QueryExecutionLogs.QueryCancellationRequested(_logger, queryId);
+
 		try
 		{
 			using var clickHouseConnection = new ClickHouseConnection(
@@ -78,9 +129,9 @@ public sealed class ClickHouseQueryExecutor : DataTableExecutor
 
 			command.ExecuteNonQuery();
 		}
-		catch
+		catch (Exception ex)
 		{
-			// ignore
+			QueryExecutionLogs.QueryCancellationFailed(_logger, queryId, ex);
 		}
 	}
 }

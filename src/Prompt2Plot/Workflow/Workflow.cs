@@ -54,6 +54,7 @@ internal sealed class Workflow
 
 		var validationContext = new ValidationContext
 		{
+			WorkItemId = workItem.Id,
 			NaturalLanguageRequest = workItem.NaturalLanguageRequest,
 			Prompt = promptContext.Prompt,
 			ModelResponse = modelResponse,
@@ -162,7 +163,8 @@ internal sealed class Workflow
 	{
 		var promptContext = new PromptContext
 		{
-			NaturalLanguageRequest = workItem.NaturalLanguageRequest
+			WorkItemId = workItem.Id,
+			NaturalLanguageRequest = workItem.NaturalLanguageRequest,
 		};
 
 		if (string.IsNullOrEmpty(promptOverride))

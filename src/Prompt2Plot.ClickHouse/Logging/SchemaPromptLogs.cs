@@ -27,4 +27,12 @@ internal static partial class SchemaPromptLogs
 		Level = LogLevel.Warning,
 		Message = "No ClickHouse tables discovered for the configured schema filters.")]
 	public static partial void NoTablesDiscovered(ILogger logger);
+
+	[LoggerMessage(
+		EventId = 5,
+		Level = LogLevel.Debug,
+		Message =
+			"ClickHouse schema appended to prompt. AddedPromptLength: {AddedPromptLength}. TotalPromptLength: {TotalPromptLength}. WorkItemId: {WorkItemId}.")]
+	public static partial void SchemaPromptAppended(
+		ILogger logger, int addedPromptLength, int totalPromptLength, ulong workItemId);
 }

@@ -2,6 +2,21 @@ namespace Prompt2Plot;
 
 public static class PlotFieldTypeExtensions
 {
+	/// <summary>
+	/// Maps a CLR type to a corresponding <see cref="PlotFieldType"/>.
+	/// </summary>
+	/// <param name="type">The CLR type returned by the database provider.</param>
+	/// <param name="additionalTypeMappings">
+	/// Additional database-specific mappings supplied by a query executor.
+	/// </param>
+	/// <returns>The mapped <see cref="PlotFieldType"/>.</returns>
+	/// <remarks>
+	/// This method provides default mappings for common CLR types such as
+	/// numeric primitives, strings, booleans, and date/time values.
+	///
+	/// Executors may supply additional mappings to support database-specific
+	/// types through <paramref name="additionalTypeMappings"/>.
+	/// </remarks>
 	public static PlotFieldType MapToPlotFieldType(
 		this Type type,
 		Dictionary<Type, PlotFieldType> additionalTypeMappings)

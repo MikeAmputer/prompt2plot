@@ -2,6 +2,7 @@
 
 public sealed class ValidationContext
 {
+	public required ulong WorkItemId { get; init; }
 	public required string NaturalLanguageRequest { get; init; }
 	public required string Prompt { get; init; }
 

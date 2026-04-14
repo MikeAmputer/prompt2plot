@@ -74,6 +74,18 @@ public static class BuilderExtensions
 		return builder.WithSqlQueryExecutor<ClickHouseQueryExecutor>();
 	}
 
+	/// <summary>
+	/// Configures the workflow to execute generated ClickHouse queries via <see cref="ClickHouseQueryExecutor"/>.
+	/// </summary>
+	/// <param name="builder">The workflow service builder.</param>
+	/// <param name="settingsProvider">
+	/// A factory that provides <see cref="ClickHouseConnectionSettings"/>.
+	/// </param>
+	/// <returns>The workflow service builder.</returns>
+	/// <remarks>
+	/// This method registers <see cref="ClickHouseQueryExecutor"/> in the service
+	/// collection and configures it as the SQL query executor for the workflow.
+	/// </remarks>
 	public static WorkflowServiceBuilder UseClickHouseQueryExecutor(
 		this WorkflowServiceBuilder builder,
 		Func<IServiceProvider, ClickHouseConnectionSettings> settingsProvider)

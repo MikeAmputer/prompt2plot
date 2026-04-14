@@ -2,7 +2,7 @@
 
 namespace Prompt2Plot;
 
-/// <inheritdoc/>
+/// <inheritdoc />
 internal sealed class WorkflowExecutionService : IWorkflowExecutionService
 {
 	private readonly WorkflowFactory _workflowFactory;
