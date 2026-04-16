@@ -36,6 +36,12 @@ internal static partial class ModelResponseValidationLogs
 
 	[LoggerMessage(
 		EventId = 35,
+		Level = LogLevel.Warning,
+		Message = "Multiple SQL statements detected but are not allowed. WorkItemId: {WorkItemId}.")]
+	public static partial void MultipleStatementsViolation(ILogger logger, ulong workItemId);
+
+	[LoggerMessage(
+		EventId = 36,
 		Level = LogLevel.Debug,
 		Message = "Model response validation completed. WorkItemId: {WorkItemId}. Errors: {ErrorCount}.")]
 	public static partial void ValidationCompleted(ILogger logger, ulong workItemId, int errorCount);

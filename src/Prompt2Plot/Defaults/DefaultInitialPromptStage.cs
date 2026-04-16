@@ -103,6 +103,7 @@ public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 		Use data sampling constraints to keep datasets readable.
 		Do not add explanations or extra text.
 		Do not expose database structure in labels and description.
+		Do not use any comments for queries.
 
 		""";
 }

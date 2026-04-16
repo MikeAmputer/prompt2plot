@@ -43,12 +43,15 @@ namespace Prompt2Plot.Defaults;
 /// </remarks>
 public sealed class DefaultModelResponseValidator : IValidationPipelineStage
 {
+	private readonly DefaultModelResponseValidatorSettings _settings;
 	private readonly ILogger _logger;
 
 	public DefaultModelResponseValidator(
 		DefaultModelResponseValidatorSettings settings,
 		ILoggerFactory? loggerFactory = null)
 	{
+		_settings = settings ?? throw new ArgumentNullException(nameof(settings));
+
 		var logFactory = loggerFactory ?? NullLoggerFactory.Instance;
 		_logger = logFactory.CreateLogger<DefaultModelResponseValidator>();
 	}
@@ -89,16 +92,39 @@ public sealed class DefaultModelResponseValidator : IValidationPipelineStage
 				continue;
 			}
 
-			dataset.SqlQuery = dataset.SqlQuery!.Trim().TrimEnd(';');
+			var query = dataset.SqlQuery.Trim();
+			var statements = SplitStatements(query);
 
-			if (!IsSelectQuery(dataset.SqlQuery))
+			if (!_settings.AllowMultipleStatements)
 			{
-				ModelResponseValidationLogs.NonSelectQueryDetected(_logger, context.WorkItemId);
+				if (statements.Count > 1)
+				{
+					ModelResponseValidationLogs.MultipleStatementsViolation(_logger, context.WorkItemId);
 
-				context.Errors.Add("Model response contains a non-select SQL.");
-				context.MarkForRetry();
+					context.Errors.Add("Multiple SQL statements are not allowed.");
+					context.MarkForRetry();
 
-				context.RetryAuxiliaryPrompts.Add(string.Format(OnlySelectAuxiliaryPrompt, dataset.SqlQuery));
+					context.RetryAuxiliaryPrompts.Add(string.Format(SingleStatementAuxiliaryPrompt, query));
+
+					continue;
+				}
+
+				query = query.TrimEnd(';');
+			}
+
+			dataset.SqlQuery = query;
+
+			foreach (var statement in statements)
+			{
+				if (!IsSelectQuery(statement))
+				{
+					ModelResponseValidationLogs.NonSelectQueryDetected(_logger, context.WorkItemId);
+
+					context.Errors.Add("Model response contains a non-select SQL.");
+					context.MarkForRetry();
+
+					context.RetryAuxiliaryPrompts.Add(string.Format(OnlySelectAuxiliaryPrompt, statement));
+				}
 			}
 		}
 
@@ -113,6 +139,11 @@ public sealed class DefaultModelResponseValidator : IValidationPipelineStage
 			|| query.StartsWith("with", StringComparison.OrdinalIgnoreCase);
 	}
 
+	private static IReadOnlyList<string> SplitStatements(string query)
+	{
+		return query.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+	}
+
 	private const string OnlySelectAuxiliaryPrompt = """
 		The previously generated SQL query was rejected during validation.
 
@@ -120,6 +151,17 @@ public sealed class DefaultModelResponseValidator : IValidationPipelineStage
 		Do NOT generate INSERT, UPDATE, DELETE, ALTER, CREATE, DROP, or other modifying statements.
 
 		Please rewrite the query as a valid SELECT statement.
+
+		Rejected query:
+		{0}
+		""";
+
+	private const string SingleStatementAuxiliaryPrompt = """
+		The previously generated SQL query was rejected during validation.
+
+		Only a single SQL statement is allowed.
+
+		Please rewrite the query as a single SELECT statement.
 
 		Rejected query:
 		{0}

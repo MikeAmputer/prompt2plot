@@ -3,12 +3,18 @@
 /// <summary>
 /// Provides configuration for <see cref="DefaultModelResponseValidator"/>.
 /// </summary>
-/// <remarks>
-/// The default validator currently does not expose configurable options,
-/// but the settings object exists to maintain a consistent construction
-/// pattern across pipeline stages and to allow future extensibility.
-/// </remarks>
 public sealed class DefaultModelResponseValidatorSettings
 {
-
+	/// <summary>
+	/// Gets or sets a value indicating whether SQL queries containing multiple
+	/// statements are allowed.
+	/// </summary>
+	/// <remarks>
+	/// When <c>false</c> (default), queries containing multiple statements
+	/// separated by semicolons are rejected during validation.
+	///
+	/// This helps prevent potentially unsafe queries and simplifies
+	/// downstream query execution logic.
+	/// </remarks>
+	public bool AllowMultipleStatements { get; set; } = false;
 }
