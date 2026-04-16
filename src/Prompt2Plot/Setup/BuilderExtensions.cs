@@ -166,6 +166,19 @@ public static class BuilderExtensions
 			});
 	}
 
+	/// <summary>
+	/// Adds the <see cref="DefaultModelResponseValidator"/> to the validation pipeline.
+	/// </summary>
+	/// <param name="builder">
+	/// The <see cref="ValidationPipelineBuilder"/> used to construct the validation pipeline.
+	/// </param>
+	/// <param name="settingsProvider">
+	/// A delegate that resolves <see cref="DefaultModelResponseValidatorSettings"/>
+	/// using the service provider and workflow key.
+	/// </param>
+	/// <returns>
+	/// The <see cref="ValidationPipelineBuilder"/> so that additional stages can be chained.
+	/// </returns>
 	public static ValidationPipelineBuilder AddModelResponseValidator(
 		this ValidationPipelineBuilder builder,
 		Func<IServiceProvider, object?, DefaultModelResponseValidatorSettings> settingsProvider)
@@ -176,6 +189,22 @@ public static class BuilderExtensions
 				sp.GetService<ILoggerFactory>()));
 	}
 
+	/// <summary>
+	/// Adds the <see cref="DefaultModelResponseValidator"/> to the validation pipeline.
+	/// </summary>
+	/// <remarks>
+	/// This overload is intended for scenarios where validator configuration
+	/// is static and known during application startup.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="ValidationPipelineBuilder"/> used to construct the validation pipeline.
+	/// </param>
+	/// <param name="settings">
+	/// The <see cref="DefaultModelResponseValidatorSettings"/> configuration used by the validator.
+	/// </param>
+	/// <returns>
+	/// The <see cref="ValidationPipelineBuilder"/> so that additional stages can be chained.
+	/// </returns>
 	public static ValidationPipelineBuilder AddModelResponseValidator(
 		this ValidationPipelineBuilder builder,
 		DefaultModelResponseValidatorSettings settings)
@@ -186,6 +215,18 @@ public static class BuilderExtensions
 				sp.GetService<ILoggerFactory>()));
 	}
 
+	/// <summary>
+	/// Adds the <see cref="DefaultModelResponseValidator"/> to the validation pipeline.
+	/// </summary>
+	/// <remarks>
+	/// This overload provides the simplest way to enable model response validation. Default configuration is used.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="ValidationPipelineBuilder"/> used to construct the validation pipeline.
+	/// </param>
+	/// <returns>
+	/// The <see cref="ValidationPipelineBuilder"/> so that additional stages can be chained.
+	/// </returns>
 	public static ValidationPipelineBuilder AddModelResponseValidator(
 		this ValidationPipelineBuilder builder)
 	{
