@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 
 namespace Prompt2Plot.InMemory;
@@ -15,14 +16,16 @@ namespace Prompt2Plot.InMemory;
 /// </para>
 /// <para>
 /// Both pending work items and results are bounded by configurable limits.
-/// When the limits are exceeded, the oldest entries are evicted.
+/// When the limits are exceeded, the oldest entries are evicted to keep
+/// memory usage bounded.
 /// </para>
 /// <para>
-/// Work item results can be consumed in two ways:
+/// Completed work item results can be accessed in several ways, depending on repository configuration:
 /// <list type="bullet">
 /// <item>
 /// <description>
-/// By retrieving an already completed result using <see cref="GetWorkItemResult(ulong)"/>.
+/// By retrieving an already completed result using
+/// <see cref="GetWorkItemResult(ulong)"/>.
 /// </description>
 /// </item>
 /// <item>
@@ -31,7 +34,17 @@ namespace Prompt2Plot.InMemory;
 /// <see cref="WaitForResultAsync(ulong, CancellationToken)"/>.
 /// </description>
 /// </item>
+/// <item>
+/// <description>
+/// By consuming a continuous asynchronous stream of completed results using
+/// <see cref="ConsumeResultsAsync(CancellationToken)"/>.
+/// </description>
+/// </item>
 /// </list>
+/// </para>
+/// <para>
+/// Result streaming is implemented using an internal channel. Each result is
+/// published to the stream once when it is added to the repository.
 /// </para>
 /// </remarks>
 public sealed class InMemoryWorkItemRepository : IWorkItemRepository
@@ -51,6 +64,8 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 
 	private readonly ConcurrentDictionary<ulong, WorkItemResult> _results = new();
 	private readonly ConcurrentQueue<ulong> _resultsOrder = new();
+
+	private readonly Channel<WorkItemResult>? _resultChannel;
 
 	private readonly ConcurrentDictionary<ulong, TaskCompletionSource<WorkItemResult>> _waiters = new();
 	private readonly ConcurrentQueue<ulong> _waitersOrder = new();
@@ -75,11 +90,23 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 		ArgumentNullException.ThrowIfNull(publisher);
 
 		_usePublisher = settings.UsePublisher;
-		_maxPending = settings.MaxPending > 0 ? settings.MaxPending : uint.MaxValue;
-		_maxResults = settings.MaxResults > 0 ? settings.MaxResults : uint.MaxValue;
-		_maxWaiters = settings.MaxWaiters > 0 ? settings.MaxWaiters : uint.MaxValue;
+		_maxPending = settings.MaxPending;
+		_maxResults = settings.MaxResults;
+		_maxWaiters = settings.MaxWaiters;
 
 		_publisher = publisher;
+
+		var useResultChannel = settings.ResultChannelCapacity > 0;
+
+		_resultChannel = useResultChannel
+			? Channel.CreateBounded<WorkItemResult>(
+				new BoundedChannelOptions((int) settings.ResultChannelCapacity)
+				{
+					SingleWriter = false,
+					SingleReader = false,
+					FullMode = BoundedChannelFullMode.DropOldest,
+				})
+			: null;
 	}
 
 	/// <summary>
@@ -120,19 +147,24 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 	{
 		ArgumentNullException.ThrowIfNull(workItemResult);
 
-		if (_results.TryAdd(workItemResult.WorkItemId, workItemResult))
+		if (_maxResults > 0 && _results.TryAdd(workItemResult.WorkItemId, workItemResult))
 		{
 			_resultsOrder.Enqueue(workItemResult.WorkItemId);
 
 			EvictExcessiveResults();
 		}
 
-		if (_waiters.TryRemove(workItemResult.WorkItemId, out var waiter))
+		if (_maxWaiters > 0 && _waiters.TryRemove(workItemResult.WorkItemId, out var waiter))
 		{
 			waiter.TrySetResult(workItemResult);
 		}
 
-		_pending.TryRemove(workItemResult.WorkItemId, out _);
+		if (_maxPending > 0)
+		{
+			_pending.TryRemove(workItemResult.WorkItemId, out _);
+		}
+
+		_resultChannel?.Writer.TryWrite(workItemResult);
 
 		return Task.CompletedTask;
 	}
@@ -147,8 +179,17 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 	/// The <see cref="WorkItemResult"/> associated with the specified work item,
 	/// or <see langword="null"/> if the work item has not completed or no result is stored.
 	/// </returns>
+	/// <exception cref="InvalidOperationException">
+	/// Thrown if result storage is disabled through repository settings
+	/// (<see cref="InMemoryWorkItemRepositorySettings.MaxResults"/> is set to <c>0</c>).
+	/// </exception>
 	public WorkItemResult? GetWorkItemResult(ulong workItemId)
 	{
+		if (_maxResults == 0)
+		{
+			throw new InvalidOperationException("Result storing is disabled through repository settings.");
+		}
+
 		_results.TryGetValue(workItemId, out var result);
 
 		return result;
@@ -190,8 +231,17 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 	/// Thrown if the waiter is evicted because the repository exceeded
 	/// <see cref="_maxWaiters"/>.
 	/// </exception>
+	/// <exception cref="InvalidOperationException">
+	/// Thrown if waiter support is disabled through repository settings
+	/// (<see cref="InMemoryWorkItemRepositorySettings.MaxWaiters"/> is set to <c>0</c>).
+	/// </exception>
 	public Task<WorkItemResult> WaitForResultAsync(ulong workItemId, CancellationToken cancellationToken)
 	{
+		if (_maxWaiters == 0)
+		{
+			throw new InvalidOperationException("Waiters are disabled through repository settings.");
+		}
+
 		if (_results.TryGetValue(workItemId, out var existing))
 		{
 			return Task.FromResult(existing);
@@ -242,6 +292,34 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 		return waiter.Task;
 	}
 
+	/// <summary>
+	/// Asynchronously consumes completed work item results produced by the repository.
+	/// </summary>
+	/// <param name="cancellationToken">
+	/// A token that can be used to cancel the asynchronous enumeration.
+	/// </param>
+	/// <returns>
+	/// An <see cref="IAsyncEnumerable{T}"/> that yields <see cref="WorkItemResult"/> instances
+	/// as they are added to the repository.
+	/// </returns>
+	/// <exception cref="InvalidOperationException">
+	/// Thrown if result streaming is disabled through repository settings
+	/// (<see cref="InMemoryWorkItemRepositorySettings.ResultChannelCapacity"/> is set to <c>0</c>).
+	/// </exception>
+	/// <remarks>
+	/// This method exposes a continuous asynchronous stream of results. Each result is
+	/// yielded once when <see cref="AddWorkItemResultAsync"/> publishes it.
+	/// </remarks>
+	public IAsyncEnumerable<WorkItemResult> ConsumeResultsAsync(CancellationToken cancellationToken = default)
+	{
+		if (_resultChannel == null)
+		{
+			throw new InvalidOperationException("Result channel is disabled through repository settings.");
+		}
+
+		return _resultChannel.Reader.ReadAllAsync(cancellationToken);
+	}
+
 	private sealed class WaiterCancellationState
 	{
 		public required InMemoryWorkItemRepository Repo;
@@ -261,6 +339,11 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 
 	private void AddPendingWithEviction(WorkItem workItem)
 	{
+		if (_maxPending == 0)
+		{
+			return;
+		}
+
 		if (_pending.TryAdd(workItem.Id, workItem))
 		{
 			_pendingOrder.Enqueue(workItem.Id);

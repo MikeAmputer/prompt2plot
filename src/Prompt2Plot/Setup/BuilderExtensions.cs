@@ -7,6 +7,26 @@ namespace Prompt2Plot;
 
 public static class BuilderExtensions
 {
+	/// <summary>
+	/// Configures Prompt2Plot to use the <see cref="InMemoryWorkItemRepository"/>.
+	/// </summary>
+	/// <remarks>
+	/// This method registers the repository in the dependency injection container
+	/// and configures the workflow infrastructure to use it as the work item store.
+	///
+	/// The provided <paramref name="settingsProvider"/> allows repository settings
+	/// to be resolved dynamically using the dependency injection container.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="Prompt2PlotBuilder"/> used to configure Prompt2Plot.
+	/// </param>
+	/// <param name="settingsProvider">
+	/// A delegate that resolves <see cref="InMemoryWorkItemRepositorySettings"/>
+	/// using the service provider.
+	/// </param>
+	/// <returns>
+	/// The <see cref="Prompt2PlotBuilder"/> so additional configuration can be chained.
+	/// </returns>
 	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(
 		this Prompt2PlotBuilder builder,
 		Func<IServiceProvider, InMemoryWorkItemRepositorySettings> settingsProvider)
@@ -16,6 +36,51 @@ public static class BuilderExtensions
 		return builder.WithWorkItemRepository<InMemoryWorkItemRepository>();
 	}
 
+	/// <summary>
+	/// Configures Prompt2Plot to use the <see cref="InMemoryWorkItemRepository"/>.
+	/// </summary>
+	/// <remarks>
+	/// This method registers the repository in the dependency injection container
+	/// and configures the workflow infrastructure to use it as the work item store.
+	///
+	/// This overload allows providing repository configuration directly during
+	/// application startup.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="Prompt2PlotBuilder"/> used to configure Prompt2Plot.
+	/// </param>
+	/// <param name="settings">
+	/// The configuration used by the repository.
+	/// </param>
+	/// <returns>
+	/// The <see cref="Prompt2PlotBuilder"/> so additional configuration can be chained.
+	/// </returns>
+	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(
+		this Prompt2PlotBuilder builder,
+		InMemoryWorkItemRepositorySettings settings)
+	{
+		builder.ServiceCollection.AddInMemoryWorkItemRepository(settings);
+
+		return builder.WithWorkItemRepository<InMemoryWorkItemRepository>();
+	}
+
+	/// <summary>
+	/// Configures Prompt2Plot to use the <see cref="InMemoryWorkItemRepository"/>
+	/// with default settings.
+	/// </summary>
+	/// <remarks>
+	/// This method registers the repository in the dependency injection container
+	/// and configures the workflow infrastructure to use it as the work item store.
+	///
+	/// This overload provides the simplest way to enable the in-memory repository.
+	/// Default <see cref="InMemoryWorkItemRepositorySettings"/> values will be used.
+	/// </remarks>
+	/// <param name="builder">
+	/// The <see cref="Prompt2PlotBuilder"/> used to configure Prompt2Plot.
+	/// </param>
+	/// <returns>
+	/// The <see cref="Prompt2PlotBuilder"/> so additional configuration can be chained.
+	/// </returns>
 	public static Prompt2PlotBuilder UseInMemoryWorkItemRepository(this Prompt2PlotBuilder builder)
 	{
 		builder.ServiceCollection.AddInMemoryWorkItemRepository();
