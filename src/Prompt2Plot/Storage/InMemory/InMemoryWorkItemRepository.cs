@@ -1,6 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Prompt2Plot.Defaults;
+using Prompt2Plot.Logging;
 
 namespace Prompt2Plot.InMemory;
 
@@ -78,6 +81,7 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 	private long _idCounter;
 
 	private readonly IWorkItemPublisher? _publisher;
+	private readonly ILogger _logger;
 
 	private const int CompactionQueueSizeMultiplier = 10;
 
@@ -107,6 +111,17 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 					FullMode = BoundedChannelFullMode.DropOldest,
 				})
 			: null;
+
+		var logFactory = loggerFactory ?? NullLoggerFactory.Instance;
+		_logger = logFactory.CreateLogger<InMemoryWorkItemRepository>();
+
+		InMemoryRepositoryLogs.RepositoryInitialized(
+			_logger,
+			settings.MaxPending,
+			settings.MaxResults,
+			settings.MaxWaiters,
+			settings.ResultChannelCapacity,
+			settings.UsePublisher);
 	}
 
 	/// <summary>
@@ -125,6 +140,7 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 		{
 			if (_publisher.TryPublish(workItem))
 			{
+				InMemoryRepositoryLogs.WorkItemPublished(_logger, id);
 				return id;
 			}
 		}
@@ -149,6 +165,8 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 
 		if (_maxResults > 0 && _results.TryAdd(workItemResult.WorkItemId, workItemResult))
 		{
+			InMemoryRepositoryLogs.ResultStored(_logger, workItemResult.WorkItemId);
+
 			_resultsOrder.Enqueue(workItemResult.WorkItemId);
 
 			EvictExcessiveResults();
@@ -258,6 +276,8 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 
 			_waitersOrder.Enqueue(id);
 
+			InMemoryRepositoryLogs.WaiterRegistered(_logger, id);
+
 			EvictExcessiveWaiters();
 
 			return tcs;
@@ -346,11 +366,16 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 
 		if (_pending.TryAdd(workItem.Id, workItem))
 		{
+			InMemoryRepositoryLogs.WorkItemAdded(_logger, workItem.Id);
+
 			_pendingOrder.Enqueue(workItem.Id);
 
 			while (_pending.Count > _maxPending && _pendingOrder.TryDequeue(out var oldest))
 			{
-				_pending.TryRemove(oldest, out _);
+				if (_pending.TryRemove(oldest, out _))
+				{
+					InMemoryRepositoryLogs.PendingEvicted(_logger, oldest);
+				}
 			}
 		}
 
@@ -361,7 +386,10 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 	{
 		while (_results.Count > _maxResults && _resultsOrder.TryDequeue(out var oldest))
 		{
-			_results.TryRemove(oldest, out _);
+			if (_results.TryRemove(oldest, out _))
+			{
+				InMemoryRepositoryLogs.ResultEvicted(_logger, oldest);
+			}
 		}
 	}
 
@@ -371,6 +399,8 @@ public sealed class InMemoryWorkItemRepository : IWorkItemRepository
 		{
 			if (_waiters.TryRemove(oldest, out var waiter))
 			{
+				InMemoryRepositoryLogs.WaiterEvicted(_logger, oldest);
+
 				waiter.TrySetException(
 					new InvalidOperationException("Result waiter evicted due to repository limits."));
 			}
