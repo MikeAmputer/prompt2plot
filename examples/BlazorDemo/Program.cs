@@ -1,9 +1,15 @@
 using BlazorDemo.Components;
+using BlazorDemo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorComponents()
-	.AddInteractiveServerComponents();
+builder.Host.UseDefaultServiceProvider(options =>
+{
+	options.ValidateOnBuild = false;
+	options.ValidateScopes = false;
+});
+
+builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 
