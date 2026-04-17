@@ -8,3 +8,56 @@ services:
       dockerfile: ./examples/BlazorDemo/Dockerfile
     ports:
       - "28080:8080"
+    depends_on:
+      prompt2plot-blazor-clickhouse:
+        condition: service_healthy
+
+  prompt2plot-blazor-clickhouse:
+    image: clickhouse/clickhouse-server:26.3
+    container_name: prompt2plot-blazor-clickhouse
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    restart: unless-stopped
+    environment:
+      - CLICKHOUSE_USER=example
+      - CLICKHOUSE_PASSWORD=example
+      - CLICKHOUSE_DB=migrations
+    healthcheck:
+      test: [ 'CMD-SHELL', "clickhouse-client --query 'SELECT 1'" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  prompt2plot-blazor-ch-migrate:
+    image: mikeamputer/ch-migrate:0.4.1
+    container_name: prompt2plot-blazor-ch-migrate
+    environment:
+      - CH_MIGRATIONS_HOST=prompt2plot-blazor-clickhouse
+      - CH_MIGRATIONS_PORT=8123
+      - CH_MIGRATIONS_USER=example
+      - CH_MIGRATIONS_PASSWORD=example
+      - CH_MIGRATIONS_DATABASE=migrations
+      - CH_MIGRATIONS_DIRECTORY=/migrations
+    volumes:
+      - ./Migrations:/migrations
+    depends_on:
+      prompt2plot-blazor-clickhouse:
+        condition: service_healthy
+    command: up
+
+  prompt2plot-blazor-ch-flow:
+    image: mikeamputer/ch-flow:0.4.3
+    container_name: prompt2plot-blazor-ch-flow
+    ports:
+      - '23000:3000'
+    environment:
+      CHF_DB_URL: "http://prompt2plot-blazor-clickhouse:8123"
+      CHF_DB_USERNAME: "example"
+      CHF_DB_PASSWORD: "example"
+      CHF_DB_NAME: "git"
+    depends_on:
+      prompt2plot-blazor-ch-migrate:
+        condition: service_completed_successfully
+
+volumes:
+  clickhouse_data:
