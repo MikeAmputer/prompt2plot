@@ -38,6 +38,7 @@ services:
       - CH_MIGRATIONS_PASSWORD=example
       - CH_MIGRATIONS_DATABASE=migrations
       - CH_MIGRATIONS_DIRECTORY=/migrations
+      - CH_MIGRATIONS_TIMEOUT=300
     volumes:
       - ./Migrations:/migrations
     depends_on:
