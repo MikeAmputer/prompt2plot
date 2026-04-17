@@ -8,9 +8,11 @@ services:
       dockerfile: ./examples/BlazorDemo/Dockerfile
     ports:
       - "28080:8080"
+    environment:
+      RUNNING_IN_CONTAINER: "true"
     depends_on:
-      prompt2plot-blazor-clickhouse:
-        condition: service_healthy
+      prompt2plot-blazor-ch-migrate:
+        condition: service_completed_successfully
 
   prompt2plot-blazor-clickhouse:
     image: clickhouse/clickhouse-server:26.3
@@ -22,6 +24,8 @@ services:
       - CLICKHOUSE_USER=example
       - CLICKHOUSE_PASSWORD=example
       - CLICKHOUSE_DB=migrations
+    ports:
+      - "28123:8123"
     healthcheck:
       test: [ 'CMD-SHELL', "clickhouse-client --query 'SELECT 1'" ]
       interval: 5s

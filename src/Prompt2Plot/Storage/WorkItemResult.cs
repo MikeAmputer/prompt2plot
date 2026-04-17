@@ -16,6 +16,6 @@ public sealed class WorkItemResultDataset
 	public string? SqlQuery { get; init; }
 	public string? Label { get; init; }
 	public List<PlotField>? Fields { get; init; }
-	public List<object?[]> Rows { get; init; }
+	public List<object?[]>? Rows { get; init; }
 	public string? Error { get; init; }
 }

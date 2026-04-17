@@ -53,14 +53,19 @@ public static class ServiceCollectionExtensions
 		return services;
 	}
 
-	private static ClickHouseConnectionSettings ClickHouseSettingsProvider(IServiceProvider sp) =>
-		new()
+	private static ClickHouseConnectionSettings ClickHouseSettingsProvider(IServiceProvider sp)
+	{
+		var inContainer = Environment.GetEnvironmentVariable("RUNNING_IN_CONTAINER") == "true";
+
+		return new ClickHouseConnectionSettings
 		{
-			ConnectionString =
-				"host=prompt2plot-blazor-clickhouse;port=8123;database=git;username=example;password=example;Timeout=60;",
+			ConnectionString = inContainer
+				? "host=prompt2plot-blazor-clickhouse;port=8123;database=git;username=example;password=example;Timeout=60;"
+				: "host=localhost;port=28123;database=git;username=example;password=example;Timeout=60;",
 			HttpClientFactory = sp.GetRequiredService<IHttpClientFactory>(),
 			HttpClientName = "ClickHouse",
 		};
+	}
 
 	private static ClickHouseSchemaPromptStageSettings ClickHouseSchemaPromptStageSettingsProvider(
 		IServiceProvider sp, object? key) =>

@@ -1,0 +1,85 @@
+﻿@page "/plots"
+@rendermode InteractiveServer
+
+@using System.Text.Json
+@using Prompt2Plot
+@using Prompt2Plot.InMemory
+@inject InMemoryWorkItemRepository Repository
+
+<PageTitle>Plot Builder</PageTitle>
+
+<h1>Plot Builder</h1>
+
+<div class="mb-3">
+	<label class="form-label">Prompt</label>
+
+	<textarea class="form-control"
+	          rows="4"
+	          @bind="_prompt"
+	          @bind:event="oninput"
+	          disabled="@_isProcessing">
+    </textarea>
+</div>
+
+<button class="btn btn-primary"
+        @onclick="BuildPlot"
+        disabled="@IsBuildDisabled">
+	Build Plot
+</button>
+
+@if (_isProcessing)
+{
+	<p class="mt-3"><em>Processing...</em></p>
+}
+
+@if (_resultJson != null)
+{
+	<div class="mt-4">
+		<h4>Result</h4>
+
+		<pre style="max-height:400px;overflow:auto">@_resultJson</pre>
+	</div>
+}
+
+@code {
+
+	private string? _prompt;
+	private bool _isProcessing;
+	private string? _resultJson;
+
+	private bool IsBuildDisabled => _isProcessing || string.IsNullOrWhiteSpace(_prompt);
+
+	private async Task BuildPlot()
+	{
+		if (string.IsNullOrWhiteSpace(_prompt))
+		{
+			return;
+		}
+
+		_isProcessing = true;
+		_resultJson = null;
+
+		try
+		{
+			var workItem = new WorkItem
+			{
+				WorkflowKey = "blazor-flow",
+				NaturalLanguageRequest = _prompt
+			};
+
+			var id = Repository.AddWorkItem(workItem);
+
+			var result = await Repository.WaitForResultAsync(id, CancellationToken.None);
+
+			_resultJson = JsonSerializer.Serialize(result, new JsonSerializerOptions
+			{
+				WriteIndented = true
+			});
+		}
+		finally
+		{
+			_isProcessing = false;
+		}
+	}
+
+}
