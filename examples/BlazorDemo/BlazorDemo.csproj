@@ -7,4 +7,10 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Prompt2Plot.ClickHouse\Prompt2Plot.ClickHouse.csproj" />
+    <ProjectReference Include="..\..\src\Prompt2Plot.OpenAI\Prompt2Plot.OpenAI.csproj" />
+    <ProjectReference Include="..\..\src\Prompt2Plot\Prompt2Plot.csproj" />
+  </ItemGroup>
+
 </Project>

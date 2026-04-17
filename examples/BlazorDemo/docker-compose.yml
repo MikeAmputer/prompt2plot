@@ -4,7 +4,7 @@ services:
   prompt2plot-blazor:
     container_name: prompt2plot-blazor
     build:
-      context: .
-      dockerfile: ./Dockerfile
+      context: ../../
+      dockerfile: ./examples/BlazorDemo/Dockerfile
     ports:
       - "28080:8080"
