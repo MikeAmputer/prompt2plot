@@ -2,8 +2,10 @@
 @rendermode InteractiveServer
 
 @using System.Text.Json
-@using Prompt2Plot
+@using Prompt2Plot.Contracts;
 @using Prompt2Plot.InMemory
+@using Prompt2Plot.Contracts.Visualization
+@using Prompt2Plot.Blazor.Components
 @inject InMemoryWorkItemRepository Repository
 
 <PageTitle>Plot Builder</PageTitle>
@@ -32,6 +34,15 @@
 	<p class="mt-3"><em>Processing...</em></p>
 }
 
+@if (_plotData != null)
+{
+	<div class="mt-4">
+		<h4>Chart</h4>
+
+		<Prompt2PlotChart Data="_plotData" />
+	</div>
+}
+
 @if (_resultJson != null)
 {
 	<div class="mt-4">
@@ -46,6 +57,7 @@
 	private string? _prompt;
 	private bool _isProcessing;
 	private string? _resultJson;
+	private PlotData? _plotData;
 
 	private bool IsBuildDisabled => _isProcessing || string.IsNullOrWhiteSpace(_prompt);
 
@@ -71,7 +83,9 @@
 
 			var result = await Repository.WaitForResultAsync(id, CancellationToken.None);
 
-			_resultJson = JsonSerializer.Serialize(result, new JsonSerializerOptions
+			_plotData = result.AsPlotData();
+
+			_resultJson = JsonSerializer.Serialize(_plotData, new JsonSerializerOptions
 			{
 				WriteIndented = true
 			});

@@ -1,12 +1,12 @@
-﻿namespace Prompt2Plot;
+﻿namespace Prompt2Plot.Contracts;
 
 public sealed class WorkItemResult
 {
 	public required ulong WorkItemId { get; init; }
+	public required string WorkflowKey { get; init; }
 	public required bool Success { get; init; }
 	public string? ChartType { get; init; }
 	public string? ChartDescription { get; init; }
-
 	public List<WorkItemResultDataset> Datasets { get; init; } = [];
 	public List<string> Errors { get; init; } = [];
 }

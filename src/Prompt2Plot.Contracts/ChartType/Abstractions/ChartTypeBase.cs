@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Prompt2Plot;
+namespace Prompt2Plot.Contracts;
 
 /// <summary>
 /// Base implementation of <see cref="IChartType"/> used to describe

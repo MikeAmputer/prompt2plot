@@ -1,4 +1,4 @@
-﻿namespace Prompt2Plot;
+﻿namespace Prompt2Plot.Contracts;
 
 public sealed class WorkItem
 {

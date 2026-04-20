@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using OpenAI.Chat;
+using Prompt2Plot.Contracts;
 
 namespace Prompt2Plot.OpenAI;
 

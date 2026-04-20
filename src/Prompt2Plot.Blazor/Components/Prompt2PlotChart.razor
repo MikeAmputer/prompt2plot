@@ -1,0 +1,47 @@
+﻿@using Prompt2Plot.Contracts.Visualization
+@inject IPlotComponentRegistry ComponentRegistry
+
+@if (_innerComponent is null || _parameters is null)
+{
+	<div class="alert alert-warning">
+		No renderer registered for chart type: @Data.ChartType
+	</div>
+}
+else
+{
+	<DynamicComponent Type="_innerComponent" Parameters="_parameters"/>
+}
+
+@code {
+
+	[Parameter, EditorRequired] public PlotData Data { get; set; } = null!;
+
+	private Type? _innerComponent;
+
+	private Dictionary<string, object>? _parameters;
+
+	protected override void OnParametersSet()
+	{
+		var innerComponentDescriptor = ComponentRegistry.Resolve(Data.ChartType, Data.WorkflowKey);
+
+		if (innerComponentDescriptor == null)
+		{
+			_innerComponent = null;
+			_parameters = null;
+
+			return;
+		}
+
+		_innerComponent = innerComponentDescriptor.ComponentType;
+
+		_parameters ??= new Dictionary<string, object>(1);
+
+		_parameters["Data"] = Data;
+
+		if (innerComponentDescriptor.Settings != null)
+		{
+			_parameters["Settings"] = innerComponentDescriptor.Settings;
+		}
+	}
+
+}

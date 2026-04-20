@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Prompt2Plot.Blazor.ApexCharts\Prompt2Plot.Blazor.ApexCharts.csproj" />
+    <ProjectReference Include="..\..\src\Prompt2Plot.Blazor\Prompt2Plot.Blazor.csproj" />
     <ProjectReference Include="..\..\src\Prompt2Plot.ClickHouse\Prompt2Plot.ClickHouse.csproj" />
     <ProjectReference Include="..\..\src\Prompt2Plot.OpenAI\Prompt2Plot.OpenAI.csproj" />
     <ProjectReference Include="..\..\src\Prompt2Plot\Prompt2Plot.csproj" />

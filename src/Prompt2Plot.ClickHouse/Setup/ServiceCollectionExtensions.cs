@@ -7,17 +7,17 @@ public static class ServiceCollectionExtensions
 {
 	public static IServiceCollection AddClickHouseQueryExecutor(
 		this IServiceCollection serviceCollection,
-		string flowName,
+		string flowKey,
 		Func<IServiceProvider, ClickHouseQueryExecutorSettings> settingsProvider)
 	{
 		ArgumentNullException.ThrowIfNull(serviceCollection);
-		ArgumentException.ThrowIfNullOrWhiteSpace(flowName);
+		ArgumentException.ThrowIfNullOrWhiteSpace(flowKey);
 		ArgumentNullException.ThrowIfNull(settingsProvider);
 
-		serviceCollection.ThrowIfRegistered<ClickHouseQueryExecutor>(flowName);
+		serviceCollection.ThrowIfRegistered<ClickHouseQueryExecutor>(flowKey);
 
 		serviceCollection.AddKeyedSingleton<ClickHouseQueryExecutor>(
-			flowName,
+			flowKey,
 			(sp, _) => new ClickHouseQueryExecutor(
 				settingsProvider(sp),
 				sp.GetService<ILoggerFactory>()));
@@ -27,11 +27,11 @@ public static class ServiceCollectionExtensions
 
 	public static IServiceCollection AddClickHouseQueryExecutor(
 		this IServiceCollection serviceCollection,
-		string flowName,
+		string flowKey,
 		Func<IServiceProvider, ClickHouseConnectionSettings> settingsProvider)
 	{
 		return serviceCollection.AddClickHouseQueryExecutor(
-			flowName,
+			flowKey,
 			sp => new ClickHouseQueryExecutorSettings { ConnectionSettings = settingsProvider(sp) });
 	}
 }

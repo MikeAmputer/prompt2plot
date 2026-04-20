@@ -1,7 +1,29 @@
-namespace Prompt2Plot;
+﻿using Prompt2Plot.Contracts.Constants;
+
+namespace Prompt2Plot.Contracts;
 
 public static class PlotFieldTypeExtensions
 {
+	public static string ToContractString(this PlotFieldType type) => type switch
+	{
+		PlotFieldType.Object => PlotFieldTypes.Object,
+		PlotFieldType.Boolean => PlotFieldTypes.Boolean,
+		PlotFieldType.Number => PlotFieldTypes.Number,
+		PlotFieldType.String => PlotFieldTypes.String,
+		PlotFieldType.DateTime => PlotFieldTypes.DateTime,
+		_ => throw new ArgumentOutOfRangeException(nameof(type))
+	};
+
+	public static PlotFieldType Parse(string value) => value switch
+	{
+		PlotFieldTypes.Object => PlotFieldType.Object,
+		PlotFieldTypes.Boolean => PlotFieldType.Boolean,
+		PlotFieldTypes.Number => PlotFieldType.Number,
+		PlotFieldTypes.String => PlotFieldType.String,
+		PlotFieldTypes.DateTime => PlotFieldType.DateTime,
+		_ => throw new ArgumentException($"Unknown PlotFieldType '{value}'")
+	};
+
 	/// <summary>
 	/// Maps a CLR type to a corresponding <see cref="PlotFieldType"/>.
 	/// </summary>

@@ -1,4 +1,6 @@
-﻿namespace Prompt2Plot;
+﻿using Prompt2Plot.Contracts.Constants;
+
+namespace Prompt2Plot.Contracts;
 
 /// <summary>
 /// Represents a pie chart visualization.
@@ -15,11 +17,11 @@
 /// </remarks>
 public class PieChartType : ChartTypeBase
 {
-	public override string Name => "pie";
+	public override string Name => ChartTypes.Pie;
 
 	public override Dictionary<string, string> Fields => new()
 	{
-		{"label", "string"},
-		{"value", "number"},
+		{PlotFields.Label, PlotFieldTypes.String},
+		{PlotFields.Value, PlotFieldTypes.Number},
 	};
 }

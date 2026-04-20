@@ -1,0 +1,73 @@
+﻿@using global::ApexCharts
+
+@if (Data.Datasets.Length == 0)
+{
+	<div class="alert alert-warning">No dataset provided.</div>
+}
+else
+{
+	<ApexChart TItem="object[]"
+	           Title="@Data.ChartDescription"
+	           Options="_options">
+
+		@foreach (var dataset in Data.Datasets)
+		{
+			var labelIndex = dataset.IndexOf(PlotFields.Label);
+			var valueIndex = dataset.IndexOf(PlotFields.Value);
+
+			if (labelIndex == null || valueIndex == null)
+			{
+				labelIndex = dataset.FirstCategoricalIndex();
+				valueIndex = dataset.FirstNumericIndex();
+			}
+
+			if (labelIndex == null || valueIndex == null)
+			{
+				continue;
+			}
+
+			<ApexPointSeries TItem="object[]"
+			                 Name="@dataset.Label"
+			                 Items="@dataset.Rows"
+			                 SeriesType="SeriesType.Bar"
+			                 XValue="@(row => row[labelIndex.Value]?.ToString() ?? string.Empty)"
+			                 YValue="@(row => Convert.ToDecimal(row[valueIndex.Value]))"/>
+		}
+
+	</ApexChart>
+}
+
+@code {
+
+	[Parameter, EditorRequired] public PlotData Data { get; set; } = null!;
+	[Parameter] public ApexBarChartSettings Settings { get; set; } = new();
+
+	private ApexChartOptions<object[]> _options = new();
+
+	protected override void OnParametersSet()
+	{
+		_options = Settings.ApexChartOptions ?? new ApexChartOptions<object[]>
+		{
+			Chart = new Chart
+			{
+				Type = ChartType.Bar,
+				Height = Settings.Height,
+				Toolbar = new Toolbar { Show = true },
+			},
+			PlotOptions = new PlotOptions
+			{
+				Bar = new PlotOptionsBar
+				{
+					Horizontal = Settings.Horizontal,
+					ColumnWidth = Settings.ColumnWidth,
+					BorderRadius = Settings.BorderRadius,
+				}
+			},
+			DataLabels = new DataLabels
+			{
+				Enabled = false
+			}
+		};
+	}
+
+}

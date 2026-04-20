@@ -6,6 +6,7 @@ using ClickHouse.Driver.Utility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Prompt2Plot.ClickHouse.Logging;
+using Prompt2Plot.Contracts;
 
 namespace Prompt2Plot.ClickHouse;
 

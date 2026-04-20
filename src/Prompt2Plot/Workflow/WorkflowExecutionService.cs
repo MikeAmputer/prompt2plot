@@ -237,6 +237,7 @@ internal sealed class WorkflowExecutionService : IWorkflowExecutionService
 			var errorResult = new WorkItemResult
 			{
 				WorkItemId = workItem.Id,
+				WorkflowKey = workItem.WorkflowKey,
 				Success = false,
 				Errors = [exception.Message],
 			};

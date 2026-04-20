@@ -13,4 +13,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Prompt2Plot.Contracts\Prompt2Plot.Contracts.csproj" />
+	</ItemGroup>
+
 </Project>

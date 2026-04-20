@@ -82,6 +82,7 @@ internal sealed class Workflow
 				return new WorkItemResult
 				{
 					WorkItemId = workItem.Id,
+					WorkflowKey = workItem.WorkflowKey,
 					Success = false,
 					Errors = validationsErrors,
 				};
@@ -93,6 +94,7 @@ internal sealed class Workflow
 			return new WorkItemResult
 			{
 				WorkItemId = workItem.Id,
+				WorkflowKey = workItem.WorkflowKey,
 				Success = false,
 				Errors = ["Failed to parse model response datasets or it is empty."]
 			};
@@ -103,6 +105,7 @@ internal sealed class Workflow
 			return new WorkItemResult
 			{
 				WorkItemId = workItem.Id,
+				WorkflowKey = workItem.WorkflowKey,
 				Success = false,
 				Errors = ["Model response contains datasets with empty SQL queries."]
 			};
@@ -147,6 +150,7 @@ internal sealed class Workflow
 		return new WorkItemResult
 		{
 			WorkItemId = workItem.Id,
+			WorkflowKey = workItem.WorkflowKey,
 			Success = success,
 			ChartType = validationContext.ModelResponse.ChartType,
 			ChartDescription = validationContext.ModelResponse.ChartDescription,
@@ -184,6 +188,7 @@ internal sealed class Workflow
 			return (promptContext, new WorkItemResult
 			{
 				WorkItemId = workItem.Id,
+				WorkflowKey = workItem.WorkflowKey,
 				Success = false,
 				Errors = promptGenerationErrors,
 			});

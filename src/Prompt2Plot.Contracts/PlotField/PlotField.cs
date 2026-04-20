@@ -1,4 +1,4 @@
-﻿namespace Prompt2Plot;
+﻿namespace Prompt2Plot.Contracts;
 
 /// <summary>
 /// Describes a field returned in a query result dataset.
@@ -7,7 +7,6 @@
 /// Each field corresponds to a column in the SQL query result and provides
 /// metadata used by visualization components to interpret the returned data.
 /// </remarks>
-[Serializable]
 public sealed class PlotField
 {
 	/// <summary>

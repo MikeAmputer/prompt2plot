@@ -1,4 +1,6 @@
-﻿namespace Prompt2Plot;
+﻿using Prompt2Plot.Contracts.Constants;
+
+namespace Prompt2Plot.Contracts;
 
 /// <summary>
 /// Represents a bubble chart visualization.
@@ -16,13 +18,13 @@
 /// </remarks>
 public class BubbleChartType : ChartTypeBase
 {
-	public override string Name => "bubble";
+	public override string Name => ChartTypes.Bubble;
 	public override string AdditionalInfo => "where 'x' and 'y' are point coordinates, and 'r' is its radius (size)";
 
 	public override Dictionary<string, string> Fields => new()
 	{
-		{"x", "number"},
-		{"y", "number"},
-		{"r", "number"},
+		{PlotFields.X, PlotFieldTypes.Number},
+		{PlotFields.Y, PlotFieldTypes.Number},
+		{PlotFields.R, PlotFieldTypes.Number},
 	};
 }

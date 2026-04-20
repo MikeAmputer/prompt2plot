@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
+using Prompt2Plot.Contracts.Constants;
 
-namespace Prompt2Plot;
+namespace Prompt2Plot.Contracts;
 
 /// <summary>
 /// Represents a tabular visualization.
@@ -21,10 +22,10 @@ namespace Prompt2Plot;
 [DebuggerDisplay("{ToPromptString()}")]
 public class TableChartType : IChartType
 {
-	public string Name => "table";
+	public string Name => ChartTypes.Table;
 
 	public string ToPromptString()
 	{
-		return "'table' with any number of fields, unable to have more than 1 dataset";
+		return $"'{ChartTypes.Table}' with any number of fields, unable to have more than 1 dataset";
 	}
 }

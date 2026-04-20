@@ -26,7 +26,6 @@
 /// When <see cref="Error"/> is not <c>null</c>, the query execution failed and
 /// <see cref="Fields"/> and <see cref="Rows"/> may be empty.
 /// </remarks>
-[Serializable]
 public sealed class DatabaseResponse
 {
 	/// <summary>

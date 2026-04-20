@@ -1,5 +1,9 @@
 ﻿using System.Net;
+using ApexCharts;
 using Prompt2Plot;
+using Prompt2Plot.Blazor;
+using Prompt2Plot.Blazor.ApexCharts;
+using Prompt2Plot.Blazor.ApexCharts.Components;
 using Prompt2Plot.ClickHouse;
 
 namespace BlazorDemo.Services;
@@ -32,6 +36,18 @@ public static class ServiceCollectionExtensions
 		);
 
 		services.AddHostedService<WorkflowHostedService>();
+
+		services.AddApexCharts(e =>
+		{
+			e.GlobalOptions = new ApexChartBaseOptions
+			{
+				Debug = true,
+				Theme = new Theme { Palette = PaletteType.Palette6 }
+			};
+		});
+
+		services.AddPlotRendering(setup => setup
+			.WithApexBarChartComponent());
 
 		return services;
 	}

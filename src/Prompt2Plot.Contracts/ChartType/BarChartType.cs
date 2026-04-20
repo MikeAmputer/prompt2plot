@@ -1,4 +1,6 @@
-﻿namespace Prompt2Plot;
+﻿using Prompt2Plot.Contracts.Constants;
+
+namespace Prompt2Plot.Contracts;
 
 /// <summary>
 /// Represents a bar chart visualization.
@@ -15,11 +17,11 @@
 /// </remarks>
 public class BarChartType : ChartTypeBase
 {
-	public override string Name => "bar";
+	public override string Name => ChartTypes.Bar;
 
 	public override Dictionary<string, string> Fields => new()
 	{
-		{"label", "string"},
-		{"value", "number"},
+		{PlotFields.Label, PlotFieldTypes.String},
+		{PlotFields.Value, PlotFieldTypes.Number},
 	};
 }

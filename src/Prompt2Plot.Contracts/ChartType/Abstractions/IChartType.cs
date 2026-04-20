@@ -1,4 +1,4 @@
-﻿namespace Prompt2Plot;
+﻿namespace Prompt2Plot.Contracts;
 
 /// <summary>
 /// Represents a chart type that can be produced by the Prompt2Plot pipeline.
