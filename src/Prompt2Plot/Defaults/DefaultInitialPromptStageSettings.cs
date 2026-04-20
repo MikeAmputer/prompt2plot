@@ -1,4 +1,6 @@
-﻿namespace Prompt2Plot.Defaults;
+﻿using Prompt2Plot.Contracts.Constants;
+
+namespace Prompt2Plot.Defaults;
 
 /// <summary>
 /// Provides configuration for <see cref="DefaultInitialPromptStage"/>.
@@ -14,11 +16,5 @@ public sealed class DefaultInitialPromptStageSettings
 	/// <summary>
 	/// Chart types that are supported by consumer visualization service.
 	/// </summary>
-	public IChartType[] SupportedChartTypes { get; init; } =
-	[
-		new BarChartType(),
-		new BubbleChartType(),
-		new PieChartType(),
-		new TableChartType(),
-	];
+	public IChartType[] SupportedChartTypes { get; init; } = ChartTypes.All;
 }
