@@ -2,5 +2,5 @@
 
 public interface IPlotComponentRegistry
 {
-	PlotComponentRegistration? Resolve(string chartType, string flowKey);
+	PlotComponentDescriptor? Resolve(string chartType, string flowKey);
 }

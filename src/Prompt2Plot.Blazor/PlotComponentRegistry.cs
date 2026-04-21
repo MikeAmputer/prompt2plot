@@ -4,10 +4,10 @@ namespace Prompt2Plot.Blazor;
 
 internal sealed class PlotComponentRegistry : IPlotComponentRegistry
 {
-	private readonly Dictionary<string, PlotComponentRegistration> _components =
+	private readonly Dictionary<string, PlotComponentDescriptor> _components =
 		new(StringComparer.OrdinalIgnoreCase);
 
-	private readonly Dictionary<(string Chart, string Flow), PlotComponentRegistration> _flowSpecificComponents =
+	private readonly Dictionary<(string Chart, string Flow), PlotComponentDescriptor> _flowSpecificComponents =
 		new(new KeyComparer());
 
 	internal void RegisterComponent<T>(string chartType, object? settings)
@@ -29,7 +29,7 @@ internal sealed class PlotComponentRegistry : IPlotComponentRegistry
 		}
 	}
 
-	public PlotComponentRegistration? Resolve(string chartType, string flowKey)
+	public PlotComponentDescriptor? Resolve(string chartType, string flowKey)
 	{
 		return _flowSpecificComponents.GetValueOrDefault((chartType, flowKey))
 		       ?? _components.GetValueOrDefault(chartType);
