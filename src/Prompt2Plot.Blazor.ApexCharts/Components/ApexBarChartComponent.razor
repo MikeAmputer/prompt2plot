@@ -10,28 +10,14 @@ else
 	           Title="@Data.ChartDescription"
 	           Options="_options">
 
-		@foreach (var dataset in Data.Datasets)
+		@foreach (var ds in _datasets)
 		{
-			var labelIndex = dataset.IndexOf(PlotFields.Label);
-			var valueIndex = dataset.IndexOf(PlotFields.Value);
-
-			if (labelIndex == null || valueIndex == null)
-			{
-				labelIndex = dataset.FirstCategoricalIndex();
-				valueIndex = dataset.FirstNumericIndex();
-			}
-
-			if (labelIndex == null || valueIndex == null)
-			{
-				continue;
-			}
-
 			<ApexPointSeries TItem="object[]"
-			                 Name="@dataset.Label"
-			                 Items="@dataset.Rows"
+			                 Name="@ds.Dataset.Label"
+			                 Items="@ds.Dataset.Rows"
 			                 SeriesType="SeriesType.Bar"
-			                 XValue="@(row => row[labelIndex.Value]?.ToString() ?? string.Empty)"
-			                 YValue="@(row => Convert.ToDecimal(row[valueIndex.Value]))"/>
+			                 XValue="@(row => row[ds.LabelIndex]?.ToString() ?? string.Empty)"
+			                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"/>
 		}
 
 	</ApexChart>
@@ -43,9 +29,12 @@ else
 	[Parameter] public ApexBarChartSettings Settings { get; set; } = new();
 
 	private ApexChartOptions<object[]> _options = new();
+	private readonly List<BarDatasetInfo> _datasets = new();
 
 	protected override void OnParametersSet()
 	{
+		SetupDatasets();
+
 		_options = Settings.ApexChartOptions ?? new ApexChartOptions<object[]>
 		{
 			Chart = new Chart
@@ -65,9 +54,44 @@ else
 			},
 			DataLabels = new DataLabels
 			{
-				Enabled = false
+				Enabled = false,
 			}
 		};
 	}
 
+	private void SetupDatasets()
+	{
+		_datasets.Clear();
+
+		foreach (var dataset in Data.Datasets)
+		{
+			var labelIndex = dataset.IndexOf(PlotFields.Label);
+			var valueIndex = dataset.IndexOf(PlotFields.Value);
+
+			if (labelIndex == null || valueIndex == null)
+			{
+				labelIndex = dataset.FirstCategoricalIndex();
+				valueIndex = dataset.FirstNumericIndex();
+			}
+
+			if (labelIndex == null || valueIndex == null)
+			{
+				continue;
+			}
+
+			_datasets.Add(new BarDatasetInfo
+			{
+				Dataset = dataset,
+				LabelIndex = labelIndex.Value,
+				ValueIndex = valueIndex.Value,
+			});
+		}
+	}
+
+	private class BarDatasetInfo
+	{
+		public PlotDataset Dataset { get; init; } = null!;
+		public required int LabelIndex { get; init; }
+		public required int ValueIndex { get; init; }
+	}
 }

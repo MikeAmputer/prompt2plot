@@ -1,0 +1,182 @@
+﻿@using System.Globalization
+@using global::ApexCharts
+
+@if (Data.Datasets.Length == 0)
+{
+	<div class="alert alert-warning">No dataset provided.</div>
+}
+else
+{
+	<ApexChart TItem="object[]"
+	           Title="@Data.ChartDescription"
+	           Options="_options">
+
+		@foreach (var ds in _datasets)
+		{
+			<ApexBubbleSeries TItem="object[]"
+			                  Name="@ds.Dataset.Label"
+			                  Items="@ds.Dataset.Rows"
+			                  XValue="@(row => row[ds.XIndex])"
+			                  YAggregate="@(rows => Convert.ToDecimal(rows.First()[ds.YIndex]))"
+			                  ZAggregate="@(rows =>
+				                              ds.RIndex != null
+					                              ? Convert.ToDecimal(rows.First()[ds.RIndex.Value])
+					                              : Settings.DefaultRadius)"
+			                  DataPointMutator="@(point =>
+			                                    {
+				                                    var row = point.Items.First();
+
+				                                    var categoryValue = ds.CategoryIndex == null
+					                                    ? null
+					                                    : row[ds.CategoryIndex.Value];
+
+				                                    point.Extra = new
+				                                    {
+					                                    xLabel = ds.XLabel,
+					                                    yLabel = ds.YLabel,
+					                                    rLabel = ds.RLabel,
+					                                    category = categoryValue,
+					                                    label = ds.CategoryLabel,
+				                                    };
+			                                    })"/>
+		}
+
+	</ApexChart>
+}
+
+@code {
+
+	[Parameter, EditorRequired] public PlotData Data { get; set; } = null!;
+	[Parameter] public ApexBubbleChartSettings Settings { get; set; } = new();
+
+	private ApexChartOptions<object[]> _options = new();
+	private readonly List<BubbleDatasetInfo> _datasets = new();
+
+	protected override void OnParametersSet()
+	{
+		SetupDatasets();
+
+		_options = Settings.ApexChartOptions ?? new ApexChartOptions<object[]>
+		{
+			Chart = new Chart
+			{
+				Type = ChartType.Bubble,
+				Height = Settings.Height,
+				Toolbar = new Toolbar { Show = true },
+			},
+			Fill = new Fill
+			{
+				Opacity = Settings.Opacity,
+			},
+			DataLabels = new DataLabels
+			{
+				Enabled = false,
+			},
+		};
+
+		if (Settings.OverrideTooltip)
+		{
+			SetupTooltip();
+		}
+	}
+
+	private void SetupDatasets()
+	{
+		_datasets.Clear();
+
+		foreach (var dataset in Data.Datasets)
+		{
+			var xIndex = dataset.IndexOf(PlotFields.X);
+			var yIndex = dataset.IndexOf(PlotFields.Y);
+			var rIndex = dataset.IndexOf(PlotFields.Size);
+
+			if (xIndex == null || yIndex == null)
+			{
+				var numeric = dataset.NumericIndexes().ToArray();
+
+				if (numeric.Length >= 2)
+				{
+					xIndex ??= numeric[0];
+					yIndex ??= numeric[1];
+				}
+
+				if (numeric.Length >= 3)
+					rIndex ??= numeric[2];
+			}
+
+			if (xIndex == null || yIndex == null)
+			{
+				continue;
+			}
+
+			var categoryIndex = dataset.FirstCategoricalIndex();
+
+			_datasets.Add(new BubbleDatasetInfo
+			{
+				Dataset = dataset,
+				XIndex = xIndex.Value,
+				XLabel = Humanize(dataset.Fields[xIndex.Value].Name),
+				YIndex = yIndex.Value,
+				YLabel = Humanize(dataset.Fields[yIndex.Value].Name),
+				RIndex = rIndex,
+				RLabel = rIndex == null ? null : Humanize(dataset.Fields[rIndex.Value].Name),
+				CategoryIndex = categoryIndex,
+				CategoryLabel = categoryIndex == null ? null : Humanize(dataset.Fields[categoryIndex.Value].Name),
+			});
+		}
+	}
+
+	private void SetupTooltip()
+	{
+		var tooltip = new Tooltip
+		{
+			Custom = @"function({seriesIndex, dataPointIndex, w}) {
+			var point = w.config.series[seriesIndex].data[dataPointIndex];
+			var extra = point.extra ?? {};
+
+			var html = `<div style=""padding:8px"">`;
+			html += `<div style=""font-weight:600;margin-bottom:4px"">${w.config.series[seriesIndex].name}</div>`;
+
+			if (extra.label && extra.category != null) {
+				html += `<div>${extra.label}: ${extra.category}</div>`;
+			}
+
+			if (extra.xLabel) {
+				html += `<div>${extra.xLabel}: ${point.x}</div>`;
+			}
+
+			if (extra.yLabel) {
+				html += `<div>${extra.yLabel}: ${point.y}</div>`;
+			}
+
+			if (extra.rLabel && point.z != null) {
+				html += `<div>${extra.rLabel}: ${point.z}</div>`;
+			}
+
+			html += `</div>`;
+			return html;
+		}"
+		};
+
+		_options.Tooltip = tooltip;
+	}
+
+	private string Humanize(string name)
+	{
+		return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(name.Replace("_", " "));
+	}
+
+	private class BubbleDatasetInfo
+	{
+		public PlotDataset Dataset { get; init; } = null!;
+		public required int XIndex { get; init; }
+		public required string XLabel { get; init; }
+		public required int YIndex { get; init; }
+		public required string YLabel { get; init; }
+		public int? RIndex { get; init; }
+		public string? RLabel { get; init; }
+		public int? CategoryIndex { get; init; }
+		public string? CategoryLabel { get; init; }
+	}
+
+}

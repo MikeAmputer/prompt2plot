@@ -47,7 +47,8 @@ public static class ServiceCollectionExtensions
 		});
 
 		services.AddPlotRendering(setup => setup
-			.WithApexBarChartComponent());
+			.WithApexBarChartComponent()
+			.WithApexBubbleChartComponent());
 
 		return services;
 	}

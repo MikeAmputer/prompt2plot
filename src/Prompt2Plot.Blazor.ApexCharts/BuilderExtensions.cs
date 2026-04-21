@@ -32,4 +32,33 @@ public static class BuilderExtensions
 	{
 		return builder.WithApexBarChartComponent(flowKey, new ApexBarChartSettings());
 	}
+
+	public static PlotComponentRegistryBuilder WithApexBubbleChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		ApexBubbleChartSettings settings)
+	{
+		return builder.WithComponent<ApexBubbleChartComponent, ApexBubbleChartSettings>(ChartTypes.Bubble, settings);
+	}
+
+	public static PlotComponentRegistryBuilder WithApexBubbleChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		string flowKey,
+		ApexBubbleChartSettings settings)
+	{
+		return builder.WithComponent<ApexBubbleChartComponent, ApexBubbleChartSettings>(
+			ChartTypes.Bubble, flowKey, settings);
+	}
+
+	public static PlotComponentRegistryBuilder WithApexBubbleChartComponent(
+		this PlotComponentRegistryBuilder builder)
+	{
+		return builder.WithApexBubbleChartComponent(new ApexBubbleChartSettings());
+	}
+
+	public static PlotComponentRegistryBuilder WithApexBubbleChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		string flowKey)
+	{
+		return builder.WithApexBubbleChartComponent(flowKey, new ApexBubbleChartSettings());
+	}
 }

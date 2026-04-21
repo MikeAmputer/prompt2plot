@@ -2,12 +2,13 @@
 
 namespace Prompt2Plot.Blazor.ApexCharts.Components;
 
-public class ApexBarChartSettings
+public class ApexBubbleChartSettings
 {
 	public ApexChartOptions<object[]>? ApexChartOptions { get; set; } = null;
 
+	public bool OverrideTooltip { get; set; } = true;
+
 	public int Height { get; set; } = 350;
-	public bool Horizontal { get; set; }
-	public string ColumnWidth { get; set; } = "50%";
-	public int BorderRadius { get; set; } = 4;
+	public decimal DefaultRadius { get; set; } = 10;
+	public double Opacity { get; set; } = 0.8;
 }
