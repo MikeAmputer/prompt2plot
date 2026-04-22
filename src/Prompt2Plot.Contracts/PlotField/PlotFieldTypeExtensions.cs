@@ -39,9 +39,7 @@ public static class PlotFieldTypeExtensions
 	/// Executors may supply additional mappings to support database-specific
 	/// types through <paramref name="additionalTypeMappings"/>.
 	/// </remarks>
-	public static PlotFieldType MapToPlotFieldType(
-		this Type type,
-		Dictionary<Type, PlotFieldType> additionalTypeMappings)
+	public static PlotFieldType MapToPlotFieldType(Type type, Dictionary<Type, PlotFieldType> additionalTypeMappings)
 	{
 		if (Nullable.GetUnderlyingType(type) is { } underlying)
 		{

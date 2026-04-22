@@ -45,7 +45,7 @@ public abstract class ChartTypeBase : IChartType
 	/// The key represents the expected field name and the value describes
 	/// the expected data type or semantic meaning.
 	/// </remarks>
-	public abstract Dictionary<string, string> Fields { get; }
+	public abstract Dictionary<string, string>[] Fields { get; }
 
 	/// <summary>
 	/// Gets optional additional instructions describing how the chart fields
@@ -57,8 +57,17 @@ public abstract class ChartTypeBase : IChartType
 	public string ToPromptString()
 	{
 		var toolPart = SpecificTool != null ? $" (for tool: {SpecificTool})" : string.Empty;
-		var fieldsPart = string.Join(", ", Fields.Select(f => $"{f.Key}: {f.Value}"));
-		var additionalPart = AdditionalInfo != null ? $", {AdditionalInfo}" : string.Empty;
-		return $"'{Name}'{toolPart} with fields [{fieldsPart}]{additionalPart}";
+
+		var fieldsPart = string.Join(
+			" or ",
+			Fields.Select(fieldsOption =>
+				"[" + string.Join(
+					", ",
+					fieldsOption.Select(f =>
+						$"{f.Key}: {f.Value}")) + "]"));
+
+		var additionalPart = AdditionalInfo != null ? $": {AdditionalInfo}" : string.Empty;
+
+		return $"'{Name}'{toolPart} with fields {fieldsPart}{additionalPart}";
 	}
 }

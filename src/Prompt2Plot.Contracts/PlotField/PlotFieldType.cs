@@ -1,7 +1,7 @@
 ﻿namespace Prompt2Plot.Contracts;
 
 /// <summary>
-/// Represents the data type of a field returned in a query result.
+/// Represents the data-type of a field returned in a query result.
 /// </summary>
 /// <remarks>
 /// These types provide a simplified abstraction over runtime types and database column types

@@ -19,9 +19,12 @@ public class BarChartType : ChartTypeBase
 {
 	public override string Name => ChartTypes.Bar;
 
-	public override Dictionary<string, string> Fields => new()
-	{
-		{PlotFields.Label, PlotFieldTypes.String},
-		{PlotFields.Value, PlotFieldTypes.Number},
-	};
+	public override Dictionary<string, string>[] Fields =>
+	[
+		new()
+		{
+			{ PlotFields.Label, PlotFieldTypes.String },
+			{ PlotFields.Value, PlotFieldTypes.Number },
+		}
+	];
 }

@@ -2,7 +2,7 @@
 
 public static class PlotDatasetExtensions
 {
-	public static int? IndexOf(this PlotDataset dataset, string fieldName)
+	public static int? FirstIndexOfName(this PlotDataset dataset, string fieldName)
 		=> FindFirstIndex(dataset, f => string.Equals(f.Name, fieldName, StringComparison.OrdinalIgnoreCase));
 
 	public static int? FirstNumericIndex(this PlotDataset dataset)
@@ -13,6 +13,9 @@ public static class PlotDatasetExtensions
 
 	public static int? FirstCategoricalIndex(this PlotDataset dataset)
 		=> FindFirstIndex(dataset, f => f.IsCategorical());
+
+	public static PlotField? FirstOfName(this PlotDataset dataset, string fieldName)
+		=> FindFirst(dataset, f => string.Equals(f.Name, fieldName, StringComparison.OrdinalIgnoreCase));
 
 	public static PlotField? FirstNumeric(this PlotDataset dataset)
 		=> FindFirst(dataset, f => f.IsNumeric());

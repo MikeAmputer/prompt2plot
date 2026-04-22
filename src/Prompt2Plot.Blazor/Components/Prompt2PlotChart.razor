@@ -1,4 +1,5 @@
-﻿@using Prompt2Plot.Contracts.Visualization
+﻿@using System.Text.Json
+@using Prompt2Plot.Contracts.Visualization
 @inject IPlotComponentRegistry ComponentRegistry
 
 @if (_innerComponent is null || _parameters is null)
@@ -34,6 +35,11 @@ else
 
 		_innerComponent = innerComponentDescriptor.ComponentType;
 
+		foreach (var dataset in Data.Datasets)
+		{
+			NormalizeDataset(dataset);
+		}
+
 		_parameters ??= new Dictionary<string, object>(1);
 
 		_parameters["Data"] = Data;
@@ -42,6 +48,51 @@ else
 		{
 			_parameters["Settings"] = innerComponentDescriptor.Settings;
 		}
+	}
+
+	private void NormalizeDataset(PlotDataset dataset)
+	{
+		foreach (var row in dataset.Rows)
+		{
+			for (var i = 0; i < row.Length; i++)
+			{
+				row[i] = NormalizeValue(row[i]);
+			}
+		}
+	}
+
+	private static object? NormalizeValue(object? value)
+	{
+		if (value is not JsonElement je)
+		{
+			return value;
+		}
+
+		return je.ValueKind switch
+		{
+			JsonValueKind.Number =>
+				je.TryGetInt64(out var l) ? l :
+				je.TryGetDecimal(out var d) ? d :
+				je.GetDouble(),
+
+			JsonValueKind.String =>
+				DateTime.TryParse(je.GetString(), out var dt)
+					? dt
+					: je.GetString(),
+
+			JsonValueKind.True => true,
+			JsonValueKind.False => false,
+
+			JsonValueKind.Null => null,
+
+			JsonValueKind.Array => je.EnumerateArray()
+				.Select(x => NormalizeValue(x))
+				.ToArray(),
+
+			JsonValueKind.Object => je.ToString(),
+
+			_ => je.ToString()
+		};
 	}
 
 }

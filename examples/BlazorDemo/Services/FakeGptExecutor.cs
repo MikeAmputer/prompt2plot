@@ -16,6 +16,10 @@ public class FakeGptExecutor : IPromptExecutor
 		{
 			result = BubbleResponse;
 		}
+		else if (promptContext.NaturalLanguageRequest.Contains("line", StringComparison.InvariantCultureIgnoreCase))
+		{
+			result = LineResponse;
+		}
 
 		return Task.FromResult(result);
 	}

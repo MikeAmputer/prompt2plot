@@ -27,15 +27,25 @@ public class BubbleChartType : ChartTypeBase
 	public override string Name => ChartTypes.Bubble;
 
 	public override string AdditionalInfo =>
-		$"where {PlotFields.X} and {PlotFields.Y} are point coordinates, and {PlotFields.Size} is bubble radius; " +
-		$"numeric fields must appear in the order {PlotFields.X}, {PlotFields.Y}, {PlotFields.Size}; " +
+		$"where '{PlotFields.X}' and '{PlotFields.Y}' are point coordinates, and '{PlotFields.Value}' is bubble size; " +
+		$"numeric fields must appear in the order '{PlotFields.X}', '{PlotFields.Y}', '{PlotFields.Value}'; " +
 		"actual dataset field names may differ and should be used as labels in the chart; " +
 		"a categorical string field may also be included to label the data point";
 
-	public override Dictionary<string, string> Fields => new()
-	{
-		{ PlotFields.X, PlotFieldTypes.Number },
-		{ PlotFields.Y, PlotFieldTypes.Number },
-		{ PlotFields.Size, PlotFieldTypes.Number },
-	};
+	public override Dictionary<string, string>[] Fields =>
+	[
+		new()
+		{
+			{ PlotFields.X, PlotFieldTypes.Number },
+			{ PlotFields.Y, PlotFieldTypes.Number },
+			{ PlotFields.Value, PlotFieldTypes.Number },
+		},
+		new()
+		{
+			{ PlotFields.Label, PlotFieldTypes.String },
+			{ PlotFields.X, PlotFieldTypes.Number },
+			{ PlotFields.Y, PlotFieldTypes.Number },
+			{ PlotFields.Value, PlotFieldTypes.Number },
+		}
+	];
 }

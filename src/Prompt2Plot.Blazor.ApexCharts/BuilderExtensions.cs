@@ -33,6 +33,7 @@ public static class BuilderExtensions
 		return builder.WithApexBarChartComponent(flowKey, new ApexBarChartSettings());
 	}
 
+
 	public static PlotComponentRegistryBuilder WithApexBubbleChartComponent(
 		this PlotComponentRegistryBuilder builder,
 		ApexBubbleChartSettings settings)
@@ -60,5 +61,35 @@ public static class BuilderExtensions
 		string flowKey)
 	{
 		return builder.WithApexBubbleChartComponent(flowKey, new ApexBubbleChartSettings());
+	}
+
+
+	public static PlotComponentRegistryBuilder WithApexLineChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		ApexLineChartSettings settings)
+	{
+		return builder.WithComponent<ApexLineChartComponent, ApexLineChartSettings>(ChartTypes.Line, settings);
+	}
+
+	public static PlotComponentRegistryBuilder WithApexLineChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		string flowKey,
+		ApexLineChartSettings settings)
+	{
+		return builder.WithComponent<ApexLineChartComponent, ApexLineChartSettings>(
+			ChartTypes.Line, flowKey, settings);
+	}
+
+	public static PlotComponentRegistryBuilder WithApexLineChartComponent(
+		this PlotComponentRegistryBuilder builder)
+	{
+		return builder.WithApexLineChartComponent(new ApexLineChartSettings());
+	}
+
+	public static PlotComponentRegistryBuilder WithApexLineChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		string flowKey)
+	{
+		return builder.WithApexLineChartComponent(flowKey, new ApexLineChartSettings());
 	}
 }

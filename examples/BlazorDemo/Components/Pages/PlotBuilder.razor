@@ -83,12 +83,15 @@
 
 			var result = await Repository.WaitForResultAsync(id, CancellationToken.None);
 
-			_plotData = result.AsPlotData();
+			var plotData = result.AsPlotData();
 
-			_resultJson = JsonSerializer.Serialize(_plotData, new JsonSerializerOptions
+			_resultJson = JsonSerializer.Serialize(plotData, new JsonSerializerOptions
 			{
 				WriteIndented = true
 			});
+
+			// _plotData = JsonSerializer.Deserialize<PlotData?>(_resultJson);
+			_plotData = plotData;
 		}
 		finally
 		{

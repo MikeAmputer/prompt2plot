@@ -86,9 +86,9 @@ else
 
 		foreach (var dataset in Data.Datasets)
 		{
-			var xIndex = dataset.IndexOf(PlotFields.X);
-			var yIndex = dataset.IndexOf(PlotFields.Y);
-			var rIndex = dataset.IndexOf(PlotFields.Size);
+			var xIndex = dataset.FirstIndexOfName(PlotFields.X);
+			var yIndex = dataset.FirstIndexOfName(PlotFields.Y);
+			var rIndex = dataset.FirstIndexOfName(PlotFields.Value);
 
 			if (xIndex == null || yIndex == null)
 			{
@@ -101,7 +101,9 @@ else
 				}
 
 				if (numeric.Length >= 3)
+				{
 					rIndex ??= numeric[2];
+				}
 			}
 
 			if (xIndex == null || yIndex == null)
@@ -109,7 +111,7 @@ else
 				continue;
 			}
 
-			var categoryIndex = dataset.FirstCategoricalIndex();
+			var categoryIndex = dataset.FirstIndexOfName(PlotFields.Label) ?? dataset.FirstCategoricalIndex();
 
 			_datasets.Add(new BubbleDatasetInfo
 			{

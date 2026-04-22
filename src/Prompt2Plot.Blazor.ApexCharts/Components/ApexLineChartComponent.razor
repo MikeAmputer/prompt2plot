@@ -1,0 +1,144 @@
+﻿@using global::ApexCharts
+
+@if (Data.Datasets.Length == 0)
+{
+	<div class="alert alert-warning">No dataset provided.</div>
+}
+else
+{
+	<ApexChart TItem="object[]"
+	           Title="@Data.ChartDescription"
+	           Options="_options">
+
+		@foreach (var ds in _datasets)
+		{
+			if (_useTemporal)
+			{
+				<ApexPointSeries TItem="object[]"
+				                 Name="@ds.Dataset.Label"
+				                 Items="@ds.Dataset.Rows"
+				                 SeriesType="SeriesType.Line"
+				                 XValue="@(row => Convert.ToDateTime(row[ds.LabelIndex]))"
+				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"/>
+			}
+			else if (_useNumeric)
+			{
+				<ApexPointSeries TItem="object[]"
+				                 Name="@ds.Dataset.Label"
+				                 Items="@ds.Dataset.Rows"
+				                 SeriesType="SeriesType.Line"
+				                 XValue="@(row => Convert.ToDecimal(row[ds.LabelIndex]))"
+				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"/>
+			}
+			else
+			{
+				<ApexPointSeries TItem="object[]"
+				                 Name="@ds.Dataset.Label"
+				                 Items="@ds.Dataset.Rows"
+				                 SeriesType="SeriesType.Line"
+				                 XValue="@(row => row[ds.LabelIndex].ToString())"
+				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"/>
+			}
+		}
+
+	</ApexChart>
+}
+
+@code {
+
+	[Parameter, EditorRequired] public PlotData Data { get; set; } = null!;
+	[Parameter] public ApexLineChartSettings Settings { get; set; } = new();
+
+	private ApexChartOptions<object[]> _options = new();
+	private readonly List<LineDatasetInfo> _datasets = new();
+
+	private bool _useTemporal;
+	private bool _useNumeric;
+
+	protected override void OnParametersSet()
+	{
+		SetupDatasets();
+
+		_options = Settings.ApexChartOptions ?? new ApexChartOptions<object[]>
+		{
+			Chart = new Chart
+			{
+				Type = ChartType.Line,
+				Height = Settings.Height,
+				Toolbar = new Toolbar { Show = true },
+			},
+			DataLabels = new DataLabels
+			{
+				Enabled = false,
+			}
+		};
+
+		var allTemporal = _datasets.All(d => d.XAxisType == XAxisType.Datetime);
+		var allNumeric = _datasets.All(d => d.XAxisType == XAxisType.Numeric);
+
+		_options.Xaxis = new XAxis
+		{
+			Type = allTemporal ? XAxisType.Datetime : (allNumeric ? XAxisType.Numeric : XAxisType.Category),
+		};
+
+		_useTemporal = allTemporal;
+		_useNumeric = allNumeric;
+	}
+
+	private void SetupDatasets()
+	{
+		_datasets.Clear();
+
+		foreach (var dataset in Data.Datasets)
+		{
+			var labelIndex = dataset.FirstIndexOfName(PlotFields.Time) ?? dataset.FirstTemporalIndex();
+
+			var xAxisType = labelIndex != null ? XAxisType.Datetime : XAxisType.Category;
+
+			if (labelIndex == null)
+			{
+				var numericIndexes = dataset.NumericIndexes().ToArray();
+				var anyCategorical = dataset.FirstCategoricalIndex() != null;
+
+				if (numericIndexes.Length >= 2 && !anyCategorical)
+				{
+					_datasets.Add(new LineDatasetInfo
+					{
+						Dataset = dataset,
+						LabelIndex = numericIndexes[0],
+						ValueIndex = numericIndexes[1],
+						XAxisType = XAxisType.Numeric,
+					});
+
+					continue;
+				}
+			}
+
+			labelIndex ??= dataset.FirstIndexOfName(PlotFields.Label) ?? dataset.FirstCategoricalIndex();
+
+			var valueIndex = dataset.FirstIndexOfName(PlotFields.Value) ?? dataset.FirstNumericIndex();
+
+			if (labelIndex == null || valueIndex == null)
+			{
+				continue;
+			}
+
+			_datasets.Add(new LineDatasetInfo
+			{
+				Dataset = dataset,
+				LabelIndex = labelIndex.Value,
+				ValueIndex = valueIndex.Value,
+				XAxisType = xAxisType,
+			});
+		}
+	}
+
+	private class LineDatasetInfo
+	{
+		public PlotDataset Dataset { get; init; } = null!;
+		public required int LabelIndex { get; init; }
+		public required int ValueIndex { get; init; }
+		public required XAxisType XAxisType { get; init; }
+	}
+
+}
