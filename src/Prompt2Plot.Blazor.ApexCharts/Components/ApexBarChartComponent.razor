@@ -1,6 +1,6 @@
 ﻿@using global::ApexCharts
 
-@if (Data.Datasets.Length == 0)
+@if (_datasets.Count == 0)
 {
 	<div class="alert alert-warning">No dataset provided.</div>
 }
@@ -65,10 +65,10 @@ else
 
 		foreach (var dataset in Data.Datasets)
 		{
-			var labelIndex = dataset.FirstIndexOfName(PlotFields.Label) ?? dataset.FirstCategoricalIndex();
-			var valueIndex = dataset.FirstIndexOfName(PlotFields.Value) ?? dataset.FirstNumericIndex();
+			var labelField = dataset.FirstCategorical();
+			var valueField = dataset.FirstNumeric();
 
-			if (labelIndex == null || valueIndex == null)
+			if (labelField == null || valueField == null)
 			{
 				continue;
 			}
@@ -76,8 +76,8 @@ else
 			_datasets.Add(new BarDatasetInfo
 			{
 				Dataset = dataset,
-				LabelIndex = labelIndex.Value,
-				ValueIndex = valueIndex.Value,
+				LabelIndex = labelField.Value.Index,
+				ValueIndex = valueField.Value.Index,
 			});
 		}
 	}

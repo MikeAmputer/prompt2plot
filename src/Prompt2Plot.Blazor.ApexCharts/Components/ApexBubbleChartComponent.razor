@@ -1,7 +1,7 @@
 ﻿@using System.Globalization
 @using global::ApexCharts
 
-@if (Data.Datasets.Length == 0)
+@if (_datasets.Count == 0)
 {
 	<div class="alert alert-warning">No dataset provided.</div>
 }
@@ -86,44 +86,30 @@ else
 
 		foreach (var dataset in Data.Datasets)
 		{
-			var xIndex = dataset.FirstIndexOfName(PlotFields.X);
-			var yIndex = dataset.FirstIndexOfName(PlotFields.Y);
-			var rIndex = dataset.FirstIndexOfName(PlotFields.Value);
+			var numeric = dataset.AllNumeric().ToArray();
 
-			if (xIndex == null || yIndex == null)
-			{
-				var numeric = dataset.NumericIndexes().ToArray();
-
-				if (numeric.Length >= 2)
-				{
-					xIndex ??= numeric[0];
-					yIndex ??= numeric[1];
-				}
-
-				if (numeric.Length >= 3)
-				{
-					rIndex ??= numeric[2];
-				}
-			}
-
-			if (xIndex == null || yIndex == null)
+			if (numeric.Length < 2)
 			{
 				continue;
 			}
 
-			var categoryIndex = dataset.FirstIndexOfName(PlotFields.Label) ?? dataset.FirstCategoricalIndex();
+			var x = numeric[0];
+			var y = numeric[1];
+			(int Index, PlotField Field)? r = numeric.Length >= 3 ? numeric[2] : null;
+
+			var category = dataset.FirstCategorical();
 
 			_datasets.Add(new BubbleDatasetInfo
 			{
 				Dataset = dataset,
-				XIndex = xIndex.Value,
-				XLabel = Humanize(dataset.Fields[xIndex.Value].Name),
-				YIndex = yIndex.Value,
-				YLabel = Humanize(dataset.Fields[yIndex.Value].Name),
-				RIndex = rIndex,
-				RLabel = rIndex == null ? null : Humanize(dataset.Fields[rIndex.Value].Name),
-				CategoryIndex = categoryIndex,
-				CategoryLabel = categoryIndex == null ? null : Humanize(dataset.Fields[categoryIndex.Value].Name),
+				XIndex = x.Index,
+				XLabel = Humanize(x.Field.Name),
+				YIndex = y.Index,
+				YLabel = Humanize(y.Field.Name),
+				RIndex = r?.Index,
+				RLabel = r == null ? null : Humanize(r.Value.Field.Name),
+				CategoryIndex = category?.Index,
+				CategoryLabel = category == null ? null : Humanize(category.Value.Field.Name),
 			});
 		}
 	}

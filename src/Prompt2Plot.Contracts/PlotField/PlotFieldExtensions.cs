@@ -2,7 +2,7 @@
 
 namespace Prompt2Plot.Contracts;
 
-public static class PlotFieldTypeExtensions
+public static class PlotFieldExtensions
 {
 	public static string ToContractString(this PlotFieldType type) => type switch
 	{
@@ -11,10 +11,10 @@ public static class PlotFieldTypeExtensions
 		PlotFieldType.Number => PlotFieldTypes.Number,
 		PlotFieldType.String => PlotFieldTypes.String,
 		PlotFieldType.DateTime => PlotFieldTypes.DateTime,
-		_ => throw new ArgumentOutOfRangeException(nameof(type))
+		_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
 	};
 
-	public static PlotFieldType Parse(string value) => value switch
+	public static PlotFieldType ParseType(string value) => value switch
 	{
 		PlotFieldTypes.Object => PlotFieldType.Object,
 		PlotFieldTypes.Boolean => PlotFieldType.Boolean,

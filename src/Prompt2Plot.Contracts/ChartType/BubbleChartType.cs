@@ -19,7 +19,7 @@ namespace Prompt2Plot.Contracts;
 /// <item><description><c>size</c> — bubble size</description></item>
 /// </list>
 ///
-/// Actual dataset field names may differ. An additional categorical string field may be included.
+/// An additional categorical string field may be included.
 /// If present, its name and value may be used to label the data point (e.g., in tooltips).
 /// </remarks>
 public class BubbleChartType : ChartTypeBase
@@ -29,7 +29,7 @@ public class BubbleChartType : ChartTypeBase
 	public override string AdditionalInfo =>
 		$"where '{PlotFields.X}' and '{PlotFields.Y}' are point coordinates, and '{PlotFields.Value}' is bubble size; " +
 		$"numeric fields must appear in the order '{PlotFields.X}', '{PlotFields.Y}', '{PlotFields.Value}'; " +
-		"actual dataset field names may differ and should be used as labels in the chart; " +
+		"dataset field names will be used as labels in the chart; " +
 		"a categorical string field may also be included to label the data point";
 
 	public override Dictionary<string, string>[] Fields =>

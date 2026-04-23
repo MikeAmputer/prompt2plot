@@ -30,15 +30,6 @@ public abstract class ChartTypeBase : IChartType
 	public abstract string Name { get; }
 
 	/// <summary>
-	/// Gets the specific visualization tool required for this chart type.
-	/// </summary>
-	/// <remarks>
-	/// When specified, the model is instructed to use the chart type only
-	/// when generating output compatible with the specified tool.
-	/// </remarks>
-	public virtual string? SpecificTool => null;
-
-	/// <summary>
 	/// Gets the dataset fields required by this chart type.
 	/// </summary>
 	/// <remarks>
@@ -56,8 +47,6 @@ public abstract class ChartTypeBase : IChartType
 	/// <inheritdoc/>
 	public string ToPromptString()
 	{
-		var toolPart = SpecificTool != null ? $" (for tool: {SpecificTool})" : string.Empty;
-
 		var fieldsPart = string.Join(
 			" or ",
 			Fields.Select(fieldsOption =>
@@ -68,6 +57,6 @@ public abstract class ChartTypeBase : IChartType
 
 		var additionalPart = AdditionalInfo != null ? $": {AdditionalInfo}" : string.Empty;
 
-		return $"'{Name}'{toolPart} with fields {fieldsPart}{additionalPart}";
+		return $"'{Name}' with fields {fieldsPart}{additionalPart}";
 	}
 }

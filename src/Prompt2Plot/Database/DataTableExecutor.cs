@@ -72,7 +72,7 @@ public abstract class DataTableExecutor : ISqlQueryExecutor
 				response.Fields.Add(new PlotField
 				{
 					Name = column.ColumnName,
-					Type = PlotFieldTypeExtensions.MapToPlotFieldType(column.DataType, AdditionalTypeMappings),
+					Type = PlotFieldExtensions.MapToPlotFieldType(column.DataType, AdditionalTypeMappings),
 				});
 			}
 

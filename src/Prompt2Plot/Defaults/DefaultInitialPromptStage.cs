@@ -98,7 +98,9 @@ public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 		Supported chart types:
 		{1}
 
-		Always alias fields in the SQL to the required chart fields in the SELECT clause.
+		Field names are not mandatory, use descriptive ones using 'AS' alias in the SELECT clause of SQL.
+		Always preserve fields order and types, as described in the chosen chart type.
+		When providing multiple datasets, ensure all datasets have similar number of fields, data types, and fields order.
 		Order results logically for readability.
 		Use data sampling constraints to keep datasets readable.
 		Do not add explanations or extra text.

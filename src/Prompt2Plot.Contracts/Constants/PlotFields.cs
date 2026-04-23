@@ -1,6 +1,6 @@
 ﻿namespace Prompt2Plot.Contracts.Constants;
 
-public static class PlotFields
+internal static class PlotFields
 {
 	public const string Label = "label";
 	public const string Value = "value";

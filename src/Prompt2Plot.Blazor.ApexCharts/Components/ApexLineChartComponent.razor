@@ -1,6 +1,6 @@
 ﻿@using global::ApexCharts
 
-@if (Data.Datasets.Length == 0)
+@if (_datasets.Count == 0)
 {
 	<div class="alert alert-warning">No dataset provided.</div>
 }
@@ -91,22 +91,23 @@ else
 
 		foreach (var dataset in Data.Datasets)
 		{
-			var labelIndex = dataset.FirstIndexOfName(PlotFields.Time) ?? dataset.FirstTemporalIndex();
+			var label = dataset.FirstTemporal();
 
-			var xAxisType = labelIndex != null ? XAxisType.Datetime : XAxisType.Category;
+			var xAxisType = label != null ? XAxisType.Datetime : XAxisType.Category;
 
-			if (labelIndex == null)
+			var categorical = dataset.FirstCategorical();
+
+			if (label == null)
 			{
-				var numericIndexes = dataset.NumericIndexes().ToArray();
-				var anyCategorical = dataset.FirstCategoricalIndex() != null;
+				var numeric = dataset.AllNumeric().ToArray();
 
-				if (numericIndexes.Length >= 2 && !anyCategorical)
+				if (numeric.Length >= 2 && categorical == null)
 				{
 					_datasets.Add(new LineDatasetInfo
 					{
 						Dataset = dataset,
-						LabelIndex = numericIndexes[0],
-						ValueIndex = numericIndexes[1],
+						LabelIndex = numeric[0].Index,
+						ValueIndex = numeric[1].Index,
 						XAxisType = XAxisType.Numeric,
 					});
 
@@ -114,11 +115,11 @@ else
 				}
 			}
 
-			labelIndex ??= dataset.FirstIndexOfName(PlotFields.Label) ?? dataset.FirstCategoricalIndex();
+			label ??= categorical;
 
-			var valueIndex = dataset.FirstIndexOfName(PlotFields.Value) ?? dataset.FirstNumericIndex();
+			var value = dataset.FirstNumeric();
 
-			if (labelIndex == null || valueIndex == null)
+			if (label == null || value == null)
 			{
 				continue;
 			}
@@ -126,8 +127,8 @@ else
 			_datasets.Add(new LineDatasetInfo
 			{
 				Dataset = dataset,
-				LabelIndex = labelIndex.Value,
-				ValueIndex = valueIndex.Value,
+				LabelIndex = label.Value.Index,
+				ValueIndex = value.Value.Index,
 				XAxisType = xAxisType,
 			});
 		}

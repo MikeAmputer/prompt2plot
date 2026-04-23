@@ -42,23 +42,10 @@ internal static class PlotDataMapper
 				.Select(f => new PlotField
 				{
 					Name = f.Name,
-					Type = MapFieldType(f.Type)
+					Type = f.Type.ToContractString(),
 				})
 				.ToArray(),
 			Rows = dataset.Rows
-		};
-	}
-
-	private static string MapFieldType(PlotFieldType type)
-	{
-		return type switch
-		{
-			PlotFieldType.Boolean => "boolean",
-			PlotFieldType.Number => "number",
-			PlotFieldType.String => "string",
-			PlotFieldType.DateTime => "datetime",
-			PlotFieldType.Object => "object",
-			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
 		};
 	}
 }
