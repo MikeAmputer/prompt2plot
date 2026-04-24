@@ -29,7 +29,7 @@ public class BubbleChartType : ChartTypeBase
 	public override string AdditionalInfo =>
 		$"where '{PlotFields.X}' and '{PlotFields.Y}' are point coordinates, and '{PlotFields.Value}' is bubble size; " +
 		$"numeric fields must appear in the order '{PlotFields.X}', '{PlotFields.Y}', '{PlotFields.Value}'; " +
-		"dataset field names will be used as labels in the chart; " +
+		"field aliases will be used as labels in the chart; " +
 		"a categorical string field may also be included to label the data point";
 
 	public override Dictionary<string, string>[] Fields =>

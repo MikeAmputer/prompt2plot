@@ -6,9 +6,7 @@ public class LineChartType : ChartTypeBase
 {
 	public override string Name => ChartTypes.Line;
 
-	public override string? AdditionalInfo =>
-		"all datasets must use the same category field type; " +
-		"rows in the dataset must be ordered according to the progression of the time or label field";
+	public override string? AdditionalInfo => "all datasets must use the same category field type";
 
 	public override Dictionary<string, string>[] Fields =>
 	[

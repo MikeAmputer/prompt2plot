@@ -110,15 +110,18 @@ public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 		Exclude rows with NULL values in chart fields using WHERE ... IS NOT NULL.
 		When aggregating, group only by chart dimension fields (e.g., category or time bucket).
 		Do not group by identifiers, hashes, or raw timestamps.
+		Do not join tables unless the relationship is clearly defined by matching columns.
 		Ensure each selected field returns a consistent data type across all rows (cast if necessary).
 		Order the result set by the column that best represents query relevance so that LIMIT returns meaningful rows.
 		Apply data sampling constraints to keep datasets readable.
 		Always apply ORDER BY before LIMIT.
+		Never invent tables or columns that are not present in the schema.
 		Do not include comments in SQL queries.
 
 		Output rules:
 		Do not add explanations or extra text.
 		Do not expose database structure in labels or chart descriptions.
+		Verify that the SQL queries follow all rules and match the chart field specification.
 
 		""";
 }

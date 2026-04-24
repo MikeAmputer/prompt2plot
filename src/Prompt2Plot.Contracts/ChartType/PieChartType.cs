@@ -19,6 +19,8 @@ public class PieChartType : ChartTypeBase
 {
 	public override string Name => ChartTypes.Pie;
 
+	public override string? AdditionalInfo => "should contain a small number of categories";
+
 	public override Dictionary<string, string>[] Fields =>
 	[
 		new()
