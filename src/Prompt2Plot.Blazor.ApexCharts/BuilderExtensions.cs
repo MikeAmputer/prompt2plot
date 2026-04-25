@@ -92,4 +92,34 @@ public static class BuilderExtensions
 	{
 		return builder.WithApexLineChartComponent(flowKey, new ApexLineChartSettings());
 	}
+
+
+	public static PlotComponentRegistryBuilder WithApexPieChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		ApexPieChartSettings settings)
+	{
+		return builder.WithComponent<ApexPieChartComponent, ApexPieChartSettings>(ChartTypes.Pie, settings);
+	}
+
+	public static PlotComponentRegistryBuilder WithApexPieChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		string flowKey,
+		ApexPieChartSettings settings)
+	{
+		return builder.WithComponent<ApexPieChartComponent, ApexPieChartSettings>(
+			ChartTypes.Pie, flowKey, settings);
+	}
+
+	public static PlotComponentRegistryBuilder WithApexPieChartComponent(
+		this PlotComponentRegistryBuilder builder)
+	{
+		return builder.WithApexPieChartComponent(new ApexPieChartSettings());
+	}
+
+	public static PlotComponentRegistryBuilder WithApexPieChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		string flowKey)
+	{
+		return builder.WithApexPieChartComponent(flowKey, new ApexPieChartSettings());
+	}
 }

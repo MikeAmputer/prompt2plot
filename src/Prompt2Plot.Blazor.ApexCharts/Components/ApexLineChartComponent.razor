@@ -19,7 +19,8 @@ else
 				                 Items="@ds.Dataset.Rows"
 				                 SeriesType="SeriesType.Line"
 				                 XValue="@(row => Convert.ToDateTime(row[ds.LabelIndex]))"
-				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"/>
+				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"
+				/>
 			}
 			else if (_useNumeric)
 			{
@@ -28,7 +29,8 @@ else
 				                 Items="@ds.Dataset.Rows"
 				                 SeriesType="SeriesType.Line"
 				                 XValue="@(row => Convert.ToDecimal(row[ds.LabelIndex]))"
-				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"/>
+				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"
+				/>
 			}
 			else
 			{
@@ -37,7 +39,8 @@ else
 				                 Items="@ds.Dataset.Rows"
 				                 SeriesType="SeriesType.Line"
 				                 XValue="@(row => row[ds.LabelIndex].ToString())"
-				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"/>
+				                 YValue="@(row => Convert.ToDecimal(row[ds.ValueIndex]))"
+				/>
 			}
 		}
 

@@ -20,6 +20,10 @@ public class FakeGptExecutor : IPromptExecutor
 		{
 			result = LineResponse;
 		}
+		else if (promptContext.NaturalLanguageRequest.Contains("pie", StringComparison.InvariantCultureIgnoreCase))
+		{
+			result = PieResponse;
+		}
 
 		return Task.FromResult(result);
 	}
@@ -40,7 +44,7 @@ public class FakeGptExecutor : IPromptExecutor
 				           FROM git.commits
 				           GROUP BY author
 				           ORDER BY value DESC
-				           LIMIT 5
+				           LIMIT 10
 				           """
 			}
 		]
@@ -66,6 +70,7 @@ public class FakeGptExecutor : IPromptExecutor
 				           HAVING count() > 100
 				           ORDER BY lines_added DESC
 				           LIMIT 15
+				           OFFSET 1
 				           """
 			},
 			// new ModelResponseDataset
@@ -115,6 +120,29 @@ public class FakeGptExecutor : IPromptExecutor
 				           FROM git.commits
 				           GROUP BY month
 				           ORDER BY month
+				           """
+			}
+		]
+	};
+
+	private static readonly ModelResponse PieResponse = new ModelResponse
+	{
+		ChartDescription = "Share of lines added by file extension",
+		ChartType = "pie",
+		Datasets =
+		[
+			new ModelResponseDataset
+			{
+				Label = "Lines Added Share",
+				SqlQuery = """
+				           SELECT
+				             file_extension AS label,
+				             sum(lines_added) AS value
+				           FROM git.file_changes
+				           WHERE file_extension != ''
+				           GROUP BY file_extension
+				           ORDER BY value DESC
+				           LIMIT 6
 				           """
 			}
 		]

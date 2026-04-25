@@ -6,20 +6,20 @@
 }
 else
 {
+	var ds = _datasets.First();
+
 	<ApexChart TItem="object[]"
 	           Title="@Data.ChartDescription"
 	           Options="_options">
 
-		@foreach (var ds in _datasets)
-		{
-			<ApexPointSeries TItem="object[]"
-			                 Name="@ds.Dataset.Label"
-			                 Items="@ds.Dataset.Rows"
-			                 SeriesType="SeriesType.Bar"
-			                 XValue="@(row => row[ds.LabelIndex].ToString())"
-			                 YAggregate="@(rows => rows.Sum(row => Convert.ToDecimal(row[ds.ValueIndex])))"
-			/>
-		}
+		<ApexPointSeries TItem="object[]"
+		                 Name="@ds.Dataset.Label"
+		                 Items="@ds.Dataset.Rows"
+		                 SeriesType="SeriesType.Pie"
+		                 XValue="@(row => row[ds.LabelIndex].ToString())"
+		                 YAggregate="@(rows => rows.Sum(row => Convert.ToDecimal(row[ds.ValueIndex])))"
+		                 OrderByDescending="e=>e.Y"
+		/>
 
 	</ApexChart>
 }
@@ -27,10 +27,10 @@ else
 @code {
 
 	[Parameter, EditorRequired] public PlotData Data { get; set; } = null!;
-	[Parameter] public ApexBarChartSettings Settings { get; set; } = new();
+	[Parameter] public ApexPieChartSettings Settings { get; set; } = new();
 
 	private ApexChartOptions<object[]> _options = new();
-	private readonly List<BarDatasetInfo> _datasets = new();
+	private readonly List<PieDatasetInfo> _datasets = new();
 
 	protected override void OnParametersSet()
 	{
@@ -40,22 +40,17 @@ else
 		{
 			Chart = new Chart
 			{
-				Type = ChartType.Bar,
+				Type = ChartType.Pie,
 				Height = Settings.Height,
 				Toolbar = new Toolbar { Show = true },
 			},
-			PlotOptions = new PlotOptions
+			Legend = new Legend
 			{
-				Bar = new PlotOptionsBar
-				{
-					Horizontal = Settings.Horizontal,
-					ColumnWidth = Settings.ColumnWidth,
-					BorderRadius = Settings.BorderRadius,
-				}
+				Show = Settings.ShowLegend
 			},
 			DataLabels = new DataLabels
 			{
-				Enabled = false,
+				Enabled = Settings.ShowDataLabels
 			}
 		};
 	}
@@ -74,16 +69,18 @@ else
 				continue;
 			}
 
-			_datasets.Add(new BarDatasetInfo
+			_datasets.Add(new PieDatasetInfo
 			{
 				Dataset = dataset,
 				LabelIndex = labelField.Value.Index,
 				ValueIndex = valueField.Value.Index,
 			});
+
+			return;
 		}
 	}
 
-	private class BarDatasetInfo
+	private class PieDatasetInfo
 	{
 		public PlotDataset Dataset { get; init; } = null!;
 		public required int LabelIndex { get; init; }

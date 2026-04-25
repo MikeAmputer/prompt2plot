@@ -26,6 +26,6 @@ public class TableChartType : IChartType
 
 	public string ToPromptString()
 	{
-		return $"'{ChartTypes.Table}' with any number of fields, unable to have more than 1 dataset";
+		return $"'{ChartTypes.Table}' with any number of fields, must contain exactly one dataset";
 	}
 }

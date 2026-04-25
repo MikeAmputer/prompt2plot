@@ -17,10 +17,10 @@ else
 			                  Name="@ds.Dataset.Label"
 			                  Items="@ds.Dataset.Rows"
 			                  XValue="@(row => row[ds.XIndex])"
-			                  YAggregate="@(rows => Convert.ToDecimal(rows.First()[ds.YIndex]))"
+			                  YAggregate="@(rows => rows.Sum(row => Convert.ToDecimal(row[ds.YIndex])))"
 			                  ZAggregate="@(rows =>
 				                              ds.RIndex != null
-					                              ? Convert.ToDecimal(rows.First()[ds.RIndex.Value])
+					                              ? rows.Sum(row => Convert.ToDecimal(row[ds.RIndex.Value]))
 					                              : Settings.DefaultRadius)"
 			                  DataPointMutator="@(point =>
 			                                    {
@@ -38,7 +38,8 @@ else
 					                                    category = categoryValue,
 					                                    label = ds.CategoryLabel,
 				                                    };
-			                                    })"/>
+			                                    })"
+			/>
 		}
 
 	</ApexChart>
