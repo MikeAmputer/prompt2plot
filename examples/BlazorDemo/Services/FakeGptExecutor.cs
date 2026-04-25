@@ -24,6 +24,10 @@ public class FakeGptExecutor : IPromptExecutor
 		{
 			result = PieResponse;
 		}
+		else if (promptContext.NaturalLanguageRequest.Contains("table", StringComparison.InvariantCultureIgnoreCase))
+		{
+			result = TableResponse;
+		}
 
 		return Task.FromResult(result);
 	}
@@ -143,6 +147,33 @@ public class FakeGptExecutor : IPromptExecutor
 				           GROUP BY file_extension
 				           ORDER BY value DESC
 				           LIMIT 6
+				           """
+			}
+		]
+	};
+
+	private static readonly ModelResponse TableResponse = new ModelResponse
+	{
+		ChartDescription = "Latest commits with change statistics",
+		ChartType = "table",
+		Datasets =
+		[
+			new ModelResponseDataset
+			{
+				Label = "Recent Commits",
+				SqlQuery = """
+				           SELECT
+				             time,
+				             author,
+				             substring(hash, 1, 8) AS commit,
+				             files_added,
+				             files_modified,
+				             files_deleted,
+				             lines_added,
+				             lines_deleted
+				           FROM git.commits
+				           ORDER BY time DESC
+				           LIMIT 200
 				           """
 			}
 		]

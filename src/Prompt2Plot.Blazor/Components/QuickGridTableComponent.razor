@@ -1,0 +1,80 @@
+﻿@using System.Globalization
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Prompt2Plot.Contracts.Visualization
+
+@if (Data.Datasets.Length == 0)
+{
+	<div class="alert alert-warning">No dataset provided.</div>
+}
+else
+{
+	var dataset = Data.Datasets.First();
+
+	if (dataset.Rows.Count == 0)
+	{
+		<div class="alert alert-info">Dataset "@dataset.Label" has no rows.</div>
+
+		return;
+	}
+
+	if (!string.IsNullOrWhiteSpace(Data.ChartDescription))
+	{
+		<h5>@Data.ChartDescription</h5>
+	}
+	else if (!string.IsNullOrWhiteSpace(dataset.Label))
+	{
+		<h5>@dataset.Label</h5>
+	}
+
+	<QuickGrid TGridItem="object[]"
+	           Items="dataset.Rows.AsQueryable()"
+	           Pagination="@(Settings.EnablePagination ? _pagination : null)"
+	           Class="@Settings.TableClass">
+
+		@for (var i = 0; i < dataset.Fields.Length; i++)
+		{
+			var index = i;
+			var field = dataset.Fields[i];
+			var title = Settings.HumanizeHeaders ? Humanize(field.Name) : field.Name;
+
+			<TemplateColumn TGridItem="object[]"
+			                Title="@title"
+			                Sortable="@Settings.AllowSorting"
+			                SortBy="@SortBy(index)">
+
+				@context[index]
+
+			</TemplateColumn>
+		}
+
+	</QuickGrid>
+
+	@if (Settings.EnablePagination)
+	{
+		<Paginator State="@_pagination"/>
+	}
+}
+
+@code {
+
+	[Parameter, EditorRequired] public PlotData Data { get; set; } = null!;
+	[Parameter] public QuickGridTableSettings Settings { get; set; } = new();
+
+	private readonly PaginationState _pagination = new();
+
+	protected override void OnParametersSet()
+	{
+		_pagination.ItemsPerPage = Settings.PageSize;
+	}
+
+	private static GridSort<object[]> SortBy(int index)
+	{
+		return GridSort<object[]>.ByDescending(row => row[index]);
+	}
+
+	private static string Humanize(string name)
+	{
+		return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(name.Replace("_", " "));
+	}
+
+}

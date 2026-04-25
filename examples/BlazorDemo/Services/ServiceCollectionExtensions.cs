@@ -3,7 +3,6 @@ using ApexCharts;
 using Prompt2Plot;
 using Prompt2Plot.Blazor;
 using Prompt2Plot.Blazor.ApexCharts;
-using Prompt2Plot.Blazor.ApexCharts.Components;
 using Prompt2Plot.ClickHouse;
 
 namespace BlazorDemo.Services;
@@ -47,6 +46,7 @@ public static class ServiceCollectionExtensions
 		});
 
 		services.AddPlotRendering(setup => setup
+			.WithQuickGridTableComponent()
 			.WithApexBarChartComponent()
 			.WithApexBubbleChartComponent()
 			.WithApexLineChartComponent()

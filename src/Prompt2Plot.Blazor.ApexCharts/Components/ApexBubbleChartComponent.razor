@@ -150,7 +150,7 @@ else
 		_options.Tooltip = tooltip;
 	}
 
-	private string Humanize(string name)
+	private static string Humanize(string name)
 	{
 		return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(name.Replace("_", " "));
 	}
