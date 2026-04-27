@@ -1,24 +1,89 @@
 ﻿@page "/settings"
 @rendermode InteractiveServer
 
+@using BlazorDemo.Services
+@inject PromptExecutorController Controller
+
 <PageTitle>Settings</PageTitle>
 
 <h1>Settings</h1>
 
-<div class="mb-3">
-	<label class="form-label">GPT API Key</label>
-	<input type="password" class="form-control" @bind="_apiKey" />
+@if (_message != null)
+{
+	<div class="alert alert-success alert-dismissible fade show" role="alert">
+		@_message
+		<button type="button" class="btn-close" @onclick="ClearMessage"></button>
+	</div>
+}
+
+<div class="card mb-4">
+	<div class="card-header">
+		<strong>Fake GPT</strong>
+	</div>
+
+	<div class="card-body">
+		<p class="text-muted">Use the built-in fake GPT executor for demos.</p>
+
+		<button class="btn btn-secondary" @onclick="UseFakeGpt">
+			Activate Fake GPT
+		</button>
+	</div>
 </div>
 
-<button class="btn btn-primary" @onclick="Apply">
-	Apply
-</button>
+<div class="card">
+	<div class="card-header">
+		<strong>OpenAI ChatGPT</strong>
+	</div>
+
+	<div class="card-body">
+
+		<div class="mb-3">
+			<label class="form-label">API Key</label>
+			<input type="password"
+			       class="form-control"
+			       @bind="_apiKey" />
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label">Model</label>
+			<input class="form-control"
+			       @bind="_model" />
+		</div>
+
+		<button class="btn btn-primary" @onclick="ApplyChatGpt">
+			Apply ChatGPT
+		</button>
+
+	</div>
+</div>
 
 @code {
-	private string? _apiKey;
 
-	private void Apply()
+	private string? _apiKey;
+	private string _model = "gpt-5.4-mini";
+
+	private string? _message;
+
+	private void UseFakeGpt()
 	{
-		// no implementation yet
+		Controller.SetupFakeGpt();
+		_message = "Fake GPT activated.";
+	}
+
+	private void ApplyChatGpt()
+	{
+		if (string.IsNullOrWhiteSpace(_apiKey))
+		{
+			_message = "API key is required.";
+			return;
+		}
+
+		Controller.SetupChatGpt(_apiKey, _model);
+		_message = $"ChatGPT configured with model '{_model}'.";
+	}
+
+	private void ClearMessage()
+	{
+		_message = null;
 	}
 }

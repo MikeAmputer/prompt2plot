@@ -11,7 +11,7 @@
 }
 else
 {
-	<DynamicComponent Type="_innerComponent" Parameters="_parameters"/>
+	<DynamicComponent @key="_parameters" Type="_innerComponent" Parameters="_parameters"/>
 }
 
 @code {
@@ -22,8 +22,17 @@ else
 
 	private Dictionary<string, object>? _parameters;
 
+	private PlotData? _previousData;
+
 	protected override void OnParametersSet()
 	{
+		if (ReferenceEquals(Data, _previousData))
+		{
+			return;
+		}
+
+		_previousData = Data;
+
 		var innerComponentDescriptor = ComponentRegistry.Resolve(Data.ChartType, Data.WorkflowKey);
 
 		if (innerComponentDescriptor == null)
@@ -41,13 +50,20 @@ else
 			NormalizeDataset(dataset);
 		}
 
-		_parameters ??= new Dictionary<string, object>(1);
-
-		_parameters["Data"] = Data;
-
 		if (innerComponentDescriptor.Settings != null)
 		{
-			_parameters["Settings"] = innerComponentDescriptor.Settings;
+			_parameters = new Dictionary<string, object>(2)
+			{
+				["Data"] = Data,
+				["Settings"] = innerComponentDescriptor.Settings,
+			};
+		}
+		else
+		{
+			_parameters = new Dictionary<string, object>(1)
+			{
+				["Data"] = Data,
+			};
 		}
 	}
 

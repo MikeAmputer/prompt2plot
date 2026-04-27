@@ -4,9 +4,9 @@ namespace BlazorDemo.Services;
 
 public class FakeGptExecutor : IPromptExecutor
 {
-	public Task<ModelResponse> ExecuteAsync(PromptContext promptContext, CancellationToken cancellationToken)
+	public Task<ModelResponse?> ExecuteAsync(PromptExecutionContext promptContext, CancellationToken cancellationToken)
 	{
-		var result = new ModelResponse();
+		ModelResponse? result = null;
 
 		if (promptContext.NaturalLanguageRequest.Contains("bar", StringComparison.InvariantCultureIgnoreCase))
 		{
@@ -34,7 +34,7 @@ public class FakeGptExecutor : IPromptExecutor
 
 	private static readonly ModelResponse BarResponse = new ModelResponse
 	{
-		ChartDescription = "Top 5 authors by lines added",
+		ChartDescription = "Top 10 authors by lines added",
 		ChartType = "bar",
 		Datasets =
 		[

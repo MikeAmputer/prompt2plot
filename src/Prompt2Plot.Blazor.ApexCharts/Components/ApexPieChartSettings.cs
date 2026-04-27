@@ -2,7 +2,7 @@
 
 namespace Prompt2Plot.Blazor.ApexCharts.Components;
 
-public class ApexPieChartSettings
+public sealed class ApexPieChartSettings
 {
 	public ApexChartOptions<object[]>? ApexChartOptions { get; set; } = null;
 

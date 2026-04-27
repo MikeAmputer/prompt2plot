@@ -5,15 +5,82 @@
 <h1>Prompt2Plot Demo</h1>
 
 <p>
-	This demo application converts natural language requests into SQL queries
-	and automatically generates plots from the data.
+	This demo shows how <strong>Prompt2Plot</strong> converts natural language prompts
+	into SQL queries and automatically renders charts from the results.
 </p>
 
-<h4>How it works</h4>
+<h4>Pages</h4>
+
+<ul>
+	<li>
+		<strong>Welcome</strong> – this page explains how the demo works.
+	</li>
+	<li>
+		<strong>Settings</strong> – choose which GPT executor to use.
+	</li>
+	<li>
+		<strong>Plots</strong> – enter a prompt and generate a visualization.
+	</li>
+</ul>
+
+<h4>How to use the demo</h4>
 
 <ol>
-	<li>Enter a natural language prompt describing the plot you want.</li>
-	<li>The system sends the request to the prompt workflow.</li>
-	<li>The workflow generates SQL and chart configuration.</li>
-	<li>The result is returned and displayed.</li>
+	<li>
+		Open the <strong>Settings</strong> page and choose an executor.
+	</li>
+	<li>
+		You can use the built-in <strong>Fake GPT</strong> for quick testing,
+		or configure <strong>OpenAI ChatGPT</strong> with your API key and model.
+	</li>
+	<li>
+		Open the <strong>Plots</strong> page and enter a prompt describing a chart.
+	</li>
+	<li>
+		Click <strong>Build Plot</strong> to generate the visualization.
+	</li>
 </ol>
+
+<h4>Dataset</h4>
+
+<p>
+	The demo uses a public dataset collected from the
+	<strong>ClickHouse GitHub repository</strong>.
+	It utilizes an <a href="https://clickhouse.com/docs/getting-started/example-datasets/github">open dataset</a>.
+	It contains the full history of commits and file changes in the project.
+	Line changes are not included because of large table size.
+</p>
+
+<h4>Fake GPT behavior</h4>
+
+<p>
+	The Fake GPT executor does not call any external service.
+	It simply checks the prompt text for certain keywords and returns
+	predefined chart responses.
+</p>
+
+<p>
+	Try prompts containing one of these keywords:
+</p>
+
+<ul>
+	<li><strong>bar</strong></li>
+	<li><strong>line</strong></li>
+	<li><strong>bubble</strong></li>
+	<li><strong>pie</strong></li>
+	<li><strong>table</strong></li>
+</ul>
+
+<h4>Example analysis prompts</h4>
+
+<ul>
+	<li>file extensions with the most modifications</li>
+	<li>largest files with the fewest authors</li>
+	<li>commits over time</li>
+	<li>commits by weekday</li>
+	<li>authors with the most diverse impact</li>
+	<li>authors with the most commits</li>
+	<li>table of favorite files for an author</li>
+	<li>repository churn over time</li>
+	<li>most consecutive commit days by author</li>
+</ul>

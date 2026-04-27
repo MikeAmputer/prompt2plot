@@ -2,11 +2,14 @@
 @rendermode InteractiveServer
 
 @using System.Text.Json
+@using BlazorDemo.Services
 @using Prompt2Plot.Contracts;
 @using Prompt2Plot.InMemory
 @using Prompt2Plot.Contracts.Visualization
 @using Prompt2Plot.Blazor.Components
+
 @inject InMemoryWorkItemRepository Repository
+@inject PromptExecutorController PromptController
 
 <PageTitle>Plot Builder</PageTitle>
 
@@ -39,16 +42,18 @@
 	<div class="mt-4">
 		<h4>Chart</h4>
 
-		<Prompt2PlotChart Data="_plotData" />
+		<Prompt2PlotChart @key="_plotData" Data="_plotData"/>
 	</div>
 }
 
 @if (_resultJson != null)
 {
 	<div class="mt-4">
-		<h4>Result</h4>
+		<details>
+			<summary><strong>Result dataset JSON</strong></summary>
 
-		<pre style="max-height:400px;overflow:auto">@_resultJson</pre>
+			<pre style="max-height:400px;overflow:auto;margin-top:10px">@_resultJson</pre>
+		</details>
 	</div>
 }
 
@@ -75,7 +80,7 @@
 		{
 			var workItem = new WorkItem
 			{
-				WorkflowKey = "blazor-flow",
+				WorkflowKey = PromptController.CurrentFlowKey,
 				NaturalLanguageRequest = _prompt
 			};
 

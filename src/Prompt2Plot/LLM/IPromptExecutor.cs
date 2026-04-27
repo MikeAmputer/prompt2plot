@@ -2,5 +2,5 @@
 
 public interface IPromptExecutor
 {
-	Task<ModelResponse> ExecuteAsync(PromptContext promptContext, CancellationToken cancellationToken);
+	Task<ModelResponse?> ExecuteAsync(PromptExecutionContext promptContext, CancellationToken cancellationToken);
 }

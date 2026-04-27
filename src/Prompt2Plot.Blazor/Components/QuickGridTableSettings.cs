@@ -1,6 +1,6 @@
 ﻿namespace Prompt2Plot.Blazor.Components;
 
-public class QuickGridTableSettings
+public sealed class QuickGridTableSettings
 {
 	public bool EnablePagination { get; init; } = true;
 

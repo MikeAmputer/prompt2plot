@@ -39,25 +39,32 @@ internal sealed class Workflow
 		CancellationToken cancellationToken)
 	{
 		var (promptContext, errorResult) = await GeneratePromptAsync(
-			workItem,
-			promptOverride,
-			auxiliaryPrompts,
-			cancellationToken);
+			workItem, promptOverride, auxiliaryPrompts, cancellationToken);
 
 		if (errorResult != null)
 		{
 			return errorResult;
 		}
 
-		// TODO : prompt execution context; validate llm errors
-		var modelResponse = await _promptExecutor.ExecuteAsync(promptContext, cancellationToken);
+		var promptExecutionContext = new PromptExecutionContext
+		{
+			WorkItemId = workItem.Id,
+			NaturalLanguageRequest = promptContext.NaturalLanguageRequest,
+			Prompt = promptContext.Prompt,
+		};
+
+		var (modelResponse, executionErrorResult) = await ExecutePrompt(
+			workItem, promptExecutionContext, cancellationToken);
+
+		if (executionErrorResult != null)
+		{
+			return executionErrorResult;
+		}
 
 		var validationContext = new ValidationContext
 		{
 			WorkItemId = workItem.Id,
-			NaturalLanguageRequest = workItem.NaturalLanguageRequest,
-			Prompt = promptContext.Prompt,
-			ModelResponse = modelResponse,
+			ModelResponse = modelResponse!,
 		};
 
 		if (_validationPipeline != null)
@@ -200,5 +207,28 @@ internal sealed class Workflow
 		}
 
 		return (promptContext, null);
+	}
+
+	private async Task<(ModelResponse? Response, WorkItemResult? ErrorResult)> ExecutePrompt(
+		WorkItem workItem,
+		PromptExecutionContext context,
+		CancellationToken cancellationToken)
+	{
+		var modelResponse = await _promptExecutor.ExecuteAsync(context, cancellationToken);
+
+		if (context.Errors.Count != 0 || modelResponse == null)
+		{
+			return (modelResponse, new WorkItemResult
+			{
+				WorkItemId = workItem.Id,
+				WorkflowKey = workItem.WorkflowKey,
+				Success = false,
+				Errors = context.Errors.Count != 0
+					? context.Errors
+					: ["Something went wrong while executing prompt."],
+			});
+		}
+
+		return (modelResponse, null);
 	}
 }
