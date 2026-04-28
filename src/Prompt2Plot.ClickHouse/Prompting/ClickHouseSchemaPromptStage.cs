@@ -128,8 +128,7 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 				sb.AppendLine();
 			}
 
-			sb.AppendLine("Use full table names with database specified.");
-			sb.AppendLine();
+			sb.AppendLine(ClickHouseRules);
 
 			_cachedPrompt = sb.ToString();
 			_cacheTimer.Restart();
@@ -265,4 +264,13 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 	                                        WHERE {0}
 	                                        ORDER BY database, table, position
 	                                        """;
+
+	const string ClickHouseRules = """
+		ClickHouse query rules:
+		- Always use fully qualified table names in the form database.table.
+		- Use toStartOfInterval or other toStartOf* fumctions for time bucketing.
+		- Only columns defined as Nullable(T) may contain NULL values.
+		- Use FINAL only when querying tables with engines: ReplacingMergeTree / SummingMergeTree / AggregatingMergeTree / CollapsingMergeTree / VersionedCollapsingMergeTree.
+
+		""";
 }
