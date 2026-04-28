@@ -19,11 +19,15 @@ public sealed class GptPromptExecutorSettings
 
 	public required ushort MaxRetries { get; init; }
 
-	public uint MaxDatasets { get; set; } = 5;
+	public uint MaxDatasets { get; init; } = 5;
 
-	public uint DatasetLabelMaxLength { get; set; } = 100;
+	public uint DatasetLabelMaxLength { get; init; } = 100;
 
-	public uint SqlQueryMaxLength { get; set; } = 2500;
+	public uint SqlQueryMaxLength { get; init; } = 2500;
 
-	public uint ChartDescriptionMaxLength { get; set; } = 500;
+	public uint ChartDescriptionMaxLength { get; init; } = 500;
+
+	public float Temperature { get; init; } = 0.1f;
+
+	public float TopP { get; init; } = 0.9f;
 }

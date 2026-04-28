@@ -210,6 +210,8 @@ public sealed class GptStructuredPromptExecutor : IPromptExecutor
 				jsonSchema: BinaryData.FromBytes(Encoding.UTF8.GetBytes(jsonSchema)),
 				jsonSchemaFormatDescription: "Schema for chart building from SQL queries",
 				jsonSchemaIsStrict: true),
+			Temperature = _settings.Temperature,
+			TopP = _settings.TopP,
 		};
 	}
 }
