@@ -66,7 +66,15 @@ else
 
 			if (labelField == null || valueField == null)
 			{
-				continue;
+				var numeric = dataset.AllNumeric().ToArray();
+
+				if (numeric.Length < 2)
+				{
+					continue;
+				}
+
+				labelField = numeric[0];
+				valueField = numeric[1];
 			}
 
 			_datasets.Add(new PieDatasetInfo

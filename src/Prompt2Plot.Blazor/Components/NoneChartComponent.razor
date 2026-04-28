@@ -1,0 +1,21 @@
+﻿@using Prompt2Plot.Contracts.Visualization
+
+@if (!string.IsNullOrWhiteSpace(Data.ChartDescription))
+{
+	<div class="alert alert-info">
+		@Data.ChartDescription
+	</div>
+}
+else
+{
+	<div class="alert alert-info">
+		No visualization can be generated for this request using the available data.
+	</div>
+}
+
+@code {
+
+	[Parameter, EditorRequired]
+	public PlotData Data { get; set; } = null!;
+
+}

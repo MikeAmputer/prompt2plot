@@ -14,11 +14,6 @@ internal static class PlotDataMapper
 			.Where(d => d != null)
 			.ToArray();
 
-		if (datasets.Length == 0)
-		{
-			return null;
-		}
-
 		return new PlotData
 		{
 			WorkflowKey = result.WorkflowKey,

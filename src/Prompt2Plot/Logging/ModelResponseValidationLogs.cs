@@ -19,7 +19,7 @@ internal static partial class ModelResponseValidationLogs
 	[LoggerMessage(
 		EventId = 32,
 		Level = LogLevel.Warning,
-		Message = "Datasets missing or empty in model response. WorkItemId: {WorkItemId}.")]
+		Message = "Datasets missing in model response. WorkItemId: {WorkItemId}.")]
 	public static partial void DatasetsMissing(ILogger logger, ulong workItemId);
 
 	[LoggerMessage(
@@ -45,4 +45,10 @@ internal static partial class ModelResponseValidationLogs
 		Level = LogLevel.Debug,
 		Message = "Model response validation completed. WorkItemId: {WorkItemId}. Errors: {ErrorCount}.")]
 	public static partial void ValidationCompleted(ILogger logger, ulong workItemId, int errorCount);
+
+	[LoggerMessage(
+		EventId = 37,
+		Level = LogLevel.Debug,
+		Message = "No datasets provided in model response. WorkItemId: {WorkItemId}.")]
+	public static partial void DatasetsEmpty(ILogger logger, ulong workItemId);
 }

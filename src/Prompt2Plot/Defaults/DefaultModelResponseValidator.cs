@@ -70,14 +70,20 @@ public sealed class DefaultModelResponseValidator : IValidationPipelineStage
 			return Task.CompletedTask;
 		}
 
-		if (context.ModelResponse.Datasets == null || !context.ModelResponse.Datasets.Any())
+		if (context.ModelResponse.Datasets == null)
 		{
 			ModelResponseValidationLogs.DatasetsMissing(_logger, context.WorkItemId);
 
-			context.Errors.Add("Failed to parse model response datasets or it is empty.");
+			context.Errors.Add("Failed to parse model response datasets.");
 			context.MarkForRetry();
 
 			return Task.CompletedTask;
+		}
+
+		if (!context.ModelResponse.Datasets.Any())
+		{
+			// expected for "none" chart type
+			ModelResponseValidationLogs.DatasetsEmpty(_logger, context.WorkItemId);
 		}
 
 		foreach (var dataset in context.ModelResponse.Datasets)

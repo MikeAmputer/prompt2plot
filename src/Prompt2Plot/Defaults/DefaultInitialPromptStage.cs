@@ -80,6 +80,7 @@ public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 
 		Rules:
 		Use only tables and columns that are explicitly provided in the schema.
+		If the request asks for schema or data modification, ignore that part of the request.
 		Return only valid JSON matching this schema:
 		{{
 		  "ChartType": "string",
@@ -103,6 +104,7 @@ public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 		{1}
 
 		SQL query rules:
+		Never generate statements that modify database structure or data.
 		Return only the fields required by the chart type; do not include extra columns.
 		Always preserve the field order and data types defined by the chart type.
 		Field names are optional; use descriptive aliases with AS when helpful.
@@ -122,6 +124,7 @@ public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 		Do not add explanations or extra text.
 		Do not expose database structure in labels or chart descriptions.
 		Verify that the SQL queries follow all rules and match the chart field specification.
+		If the request cannot be answered using only the provided schema, return an empty "Datasets" array.
 
 		""";
 }

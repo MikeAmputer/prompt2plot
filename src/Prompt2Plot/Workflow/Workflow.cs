@@ -96,7 +96,7 @@ internal sealed class Workflow
 			}
 		}
 
-		if (validationContext.ModelResponse.Datasets == null || !validationContext.ModelResponse.Datasets.Any())
+		if (validationContext.ModelResponse.Datasets == null)
 		{
 			return new WorkItemResult
 			{

@@ -25,6 +25,11 @@ public class BarChartType : ChartTypeBase
 		{
 			{ PlotFields.Label, PlotFieldTypes.String },
 			{ PlotFields.Value, PlotFieldTypes.Number },
+		},
+		new()
+		{
+			{ PlotFields.Label, PlotFieldTypes.Number },
+			{ PlotFields.Value, PlotFieldTypes.Number },
 		}
 	];
 }

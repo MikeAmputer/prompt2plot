@@ -65,12 +65,19 @@ public sealed class ClickHouseQueryValidationStage : IValidationPipelineStage
 
 	public async Task ExecuteAsync(ValidationContext context, CancellationToken cancellationToken)
 	{
-		if (context.ModelResponse.Datasets == null || !context.ModelResponse.Datasets.Any())
+		if (context.ModelResponse.Datasets == null)
 		{
-			QueryValidationLogs.NoDatasetsInResponse(_logger, context.WorkItemId);
+			QueryValidationLogs.DatasetsMissingInResponse(_logger, context.WorkItemId);
 
-			context.Errors.Add("Failed to parse model response datasets or it is empty.");
+			context.Errors.Add("Failed to parse model response datasets.");
 			context.MarkForRetry();
+
+			return;
+		}
+
+		if (!context.ModelResponse.Datasets.Any())
+		{
+			QueryValidationLogs.DatasetsMissingInResponse(_logger, context.WorkItemId);
 
 			return;
 		}

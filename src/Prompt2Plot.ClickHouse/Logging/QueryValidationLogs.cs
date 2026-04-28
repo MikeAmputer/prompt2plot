@@ -26,12 +26,18 @@ internal static partial class QueryValidationLogs
 	[LoggerMessage(
 		EventId = 13,
 		Level = LogLevel.Warning,
-		Message = "Model response does not contain datasets. WorkItemId: {WorkItemId}.")]
-	public static partial void NoDatasetsInResponse(ILogger logger, ulong workItemId);
+		Message = "Datasets missing in model response. WorkItemId: {WorkItemId}.")]
+	public static partial void DatasetsMissingInResponse(ILogger logger, ulong workItemId);
 
 	[LoggerMessage(
 		EventId = 14,
 		Level = LogLevel.Warning,
 		Message = "Model response contains datasets with empty SQL queries. WorkItemId: {WorkItemId}.")]
 	public static partial void EmptyQueryDetected(ILogger logger, ulong workItemId);
+
+	[LoggerMessage(
+		EventId = 13,
+		Level = LogLevel.Warning,
+		Message = "No datasets provided in model response. WorkItemId: {WorkItemId}.")]
+	public static partial void DatasetsEmptyInResponse(ILogger logger, ulong workItemId);
 }

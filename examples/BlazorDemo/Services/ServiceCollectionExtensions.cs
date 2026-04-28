@@ -71,7 +71,8 @@ public static class ServiceCollectionExtensions
 			.WithApexBarChartComponent()
 			.WithApexBubbleChartComponent()
 			.WithApexLineChartComponent()
-			.WithApexPieChartComponent());
+			.WithApexPieChartComponent()
+			.WithDefaultNoneChartComponent());
 
 		return services;
 	}

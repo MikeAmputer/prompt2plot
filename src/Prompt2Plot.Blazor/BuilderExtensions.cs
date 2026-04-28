@@ -32,4 +32,17 @@ public static class BuilderExtensions
 	{
 		return builder.WithQuickGridTableComponent(flowKey, new QuickGridTableSettings());
 	}
+
+	public static PlotComponentRegistryBuilder WithDefaultNoneChartComponent(
+		this PlotComponentRegistryBuilder builder)
+	{
+		return builder.WithComponent<NoneChartComponent>(ChartTypes.None);
+	}
+
+	public static PlotComponentRegistryBuilder WithDefaultNoneChartComponent(
+		this PlotComponentRegistryBuilder builder,
+		string flowKey)
+	{
+		return builder.WithComponent<NoneChartComponent>(ChartTypes.None, flowKey);
+	}
 }

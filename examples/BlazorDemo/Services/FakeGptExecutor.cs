@@ -28,6 +28,10 @@ public class FakeGptExecutor : IPromptExecutor
 		{
 			result = TableResponse;
 		}
+		else if (promptContext.NaturalLanguageRequest.Contains("none", StringComparison.InvariantCultureIgnoreCase))
+		{
+			result = NoneResponse;
+		}
 
 		return Task.FromResult(result);
 	}
@@ -177,5 +181,13 @@ public class FakeGptExecutor : IPromptExecutor
 				           """
 			}
 		]
+	};
+
+
+	private static readonly ModelResponse NoneResponse = new ModelResponse
+	{
+		ChartDescription = "",
+		ChartType = "none",
+		Datasets = []
 	};
 }
