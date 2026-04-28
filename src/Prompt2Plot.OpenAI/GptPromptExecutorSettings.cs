@@ -18,4 +18,12 @@ public sealed class GptPromptExecutorSettings
 	public required IChartType[] SupportedChartTypes { get; init; }
 
 	public required ushort MaxRetries { get; init; }
+
+	public uint MaxDatasets { get; set; } = 5;
+
+	public uint DatasetLabelMaxLength { get; set; } = 100;
+
+	public uint SqlQueryMaxLength { get; set; } = 2500;
+
+	public uint ChartDescriptionMaxLength { get; set; } = 500;
 }

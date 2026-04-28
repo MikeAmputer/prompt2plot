@@ -104,6 +104,7 @@ public sealed class DefaultInitialPromptStage : IPromptPipelineStage
 		{1}
 
 		SQL query rules:
+		Must be a single read-only query per dataset.
 		Never generate statements that modify database structure or data.
 		Return only the fields required by the chart type; do not include extra columns.
 		Always preserve the field order and data types defined by the chart type.

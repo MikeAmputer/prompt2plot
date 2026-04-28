@@ -10,7 +10,7 @@ namespace Prompt2Plot.OpenAI;
 public sealed class GptStructuredPromptExecutor : IPromptExecutor
 {
 	private readonly IChartType[] _supportedChartTypes;
-	private readonly ushort _maxRetries;
+	private readonly GptPromptExecutorSettings _settings;
 
 	private readonly ChatClient _client;
 	private readonly ChatCompletionOptions _options;
@@ -25,7 +25,7 @@ public sealed class GptStructuredPromptExecutor : IPromptExecutor
 		ArgumentNullException.ThrowIfNull(settings, nameof(settings));
 
 		_supportedChartTypes = settings.SupportedChartTypes;
-		_maxRetries = settings.MaxRetries;
+		_settings = settings;
 
 		_client = settings.GetChatClient();
 		_options = CreateOptions();
@@ -38,7 +38,7 @@ public sealed class GptStructuredPromptExecutor : IPromptExecutor
 		string? auxiliaryPrompt = null;
 		List<string> errorMessages = [];
 
-		for (var i = 0; i <= _maxRetries; i++)
+		for (var i = 0; i <= _settings.MaxRetries; i++)
 		{
 			var (response, exception) = await TryCompleteChat(
 				promptContext, _options, auxiliaryPrompt, cancellationToken);
@@ -171,17 +171,32 @@ public sealed class GptStructuredPromptExecutor : IPromptExecutor
 			    "ChartType": { "type": "string"{{chartTypesEnum}} },
 			    "Datasets": {
 			      "type": "array",
+			      "minItems": 0,
+			      "maxItems": {{_settings.MaxDatasets}},
 			      "items": {
 			        "type": "object",
 			        "properties": {
-			          "Label": { "type": "string" },
-			          "SqlQuery": { "type": "string" }
+			          "Label": {
+			            "type": "string",
+			            "minLength": 1,
+			            "maxLength": {{_settings.DatasetLabelMaxLength}}
+			          },
+			          "SqlQuery": {
+			            "type": "string",
+			            "minLength": 10,
+			            "maxLength": {{_settings.SqlQueryMaxLength}},
+			            "pattern": "(?i)^\\s*(select|with)\\b[^;]*$"
+			          }
 			        },
 			        "required": ["Label", "SqlQuery"],
 			        "additionalProperties": false
 			      }
 			    },
-			    "ChartDescription": { "type": "string" }
+			    "ChartDescription": {
+			      "type": "string",
+			      "minLength": 5,
+			      "maxLength": {{_settings.ChartDescriptionMaxLength}}
+			    }
 			  },
 			  "required": ["ChartType", "Datasets", "ChartDescription"],
 			  "additionalProperties": false
