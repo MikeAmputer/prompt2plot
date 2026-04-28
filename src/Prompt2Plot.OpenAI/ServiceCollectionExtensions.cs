@@ -5,6 +5,14 @@ namespace Prompt2Plot.OpenAI;
 
 public static class ServiceCollectionExtensions
 {
+	/// <summary>
+	/// Registers a keyed <see cref="GptStructuredPromptExecutor"/> using a
+	/// settings factory that receives the workflow key.
+	/// </summary>
+	/// <param name="serviceCollection">Service collection to modify.</param>
+	/// <param name="flowKey">Workflow key used for keyed service registration.</param>
+	/// <param name="settingsProvider">Factory that produces executor settings.</param>
+	/// <param name="serviceLifetime">Service lifetime of the executor.</param>
 	public static IServiceCollection AddGptStructuredPromptExecutor(
 		this IServiceCollection serviceCollection,
 		string flowKey,
@@ -30,6 +38,14 @@ public static class ServiceCollectionExtensions
 		return serviceCollection;
 	}
 
+	/// <summary>
+	/// Registers a keyed <see cref="GptStructuredPromptExecutor"/> using a
+	/// simple settings factory.
+	/// </summary>
+	/// <param name="services">Service collection to modify.</param>
+	/// <param name="flowKey">Workflow key used for keyed service registration.</param>
+	/// <param name="settingsProvider">Factory that produces executor settings.</param>
+	/// <param name="lifetime">Service lifetime of the executor.</param>
 	public static IServiceCollection AddGptStructuredPromptExecutor(
 		this IServiceCollection services,
 		string flowKey,

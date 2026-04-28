@@ -2,11 +2,23 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenAI.Chat;
 using Prompt2Plot.Contracts;
+using Prompt2Plot.OpenAI.Logging;
 
 namespace Prompt2Plot.OpenAI;
 
+/// <summary>
+/// Executes prompts against an OpenAI chat model and parses the response
+/// into a structured <see cref="ModelResponse"/> using a strict JSON schema.
+/// </summary>
+/// <remarks>
+/// Responses are validated against a predefined JSON schema.
+///
+/// If the model returns invalid JSON, the executor retries the request with
+/// an auxiliary prompt instructing the model to correct the output.
+/// </remarks>
 public sealed class GptStructuredPromptExecutor : IPromptExecutor
 {
 	private readonly IChartType[] _supportedChartTypes;
@@ -20,6 +32,8 @@ public sealed class GptStructuredPromptExecutor : IPromptExecutor
 		PropertyNameCaseInsensitive = true,
 	};
 
+	private readonly ILogger _logger;
+
 	public GptStructuredPromptExecutor(GptPromptExecutorSettings settings, ILoggerFactory? loggerFactory = null)
 	{
 		ArgumentNullException.ThrowIfNull(settings, nameof(settings));
@@ -29,22 +43,31 @@ public sealed class GptStructuredPromptExecutor : IPromptExecutor
 
 		_client = settings.GetChatClient();
 		_options = CreateOptions();
+
+		var logFactory = loggerFactory ?? NullLoggerFactory.Instance;
+		_logger = logFactory.CreateLogger<GptStructuredPromptExecutor>();
 	}
 
 	public async Task<ModelResponse?> ExecuteAsync(
 		PromptExecutionContext promptContext,
 		CancellationToken cancellationToken)
 	{
+		GptPromptExecutorLogs.ExecutionStarted(_logger, promptContext.WorkItemId);
+
 		string? auxiliaryPrompt = null;
 		List<string> errorMessages = [];
 
 		for (var i = 0; i <= _settings.MaxRetries; i++)
 		{
+			GptPromptExecutorLogs.OpenAIRequestStarted(_logger, i + 1, promptContext.WorkItemId);
+
 			var (response, exception) = await TryCompleteChat(
 				promptContext, _options, auxiliaryPrompt, cancellationToken);
 
 			if (exception != null)
 			{
+				GptPromptExecutorLogs.OpenAIRequestFailed(_logger, promptContext.WorkItemId, exception);
+
 				promptContext.Errors.Add(exception.Message);
 
 				return null;
@@ -54,9 +77,16 @@ public sealed class GptStructuredPromptExecutor : IPromptExecutor
 
 			if (result != null)
 			{
+				GptPromptExecutorLogs.ResponseParsed(_logger, promptContext.WorkItemId);
+
 				return result;
 			}
+
+			GptPromptExecutorLogs.JsonParseFailed(
+				_logger, i + 1, _settings.MaxRetries, promptContext.WorkItemId);
 		}
+
+		GptPromptExecutorLogs.ExecutionFailed(_logger, promptContext.WorkItemId, _settings.MaxRetries);
 
 		promptContext.Errors.AddRange(errorMessages);
 
