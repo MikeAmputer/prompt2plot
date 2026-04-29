@@ -245,6 +245,7 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 	                                           database,
 	                                           name,
 	                                           engine,
+	                                           engine_full,
 	                                           sorting_key,
 	                                           total_rows,
 	                                           comment
@@ -265,12 +266,14 @@ public sealed class ClickHouseSchemaPromptStage : IPromptPipelineStage
 	                                        ORDER BY database, table, position
 	                                        """;
 
-	const string ClickHouseRules = """
+	private const string ClickHouseRules = """
 		ClickHouse query rules:
 		- Always use fully qualified table names in the form database.table.
-		- Use toStartOfInterval or other toStartOf* fumctions for time bucketing.
+		- Use toStartOfInterval or other toStartOf* functions for time bucketing.
 		- Only columns defined as Nullable(T) may contain NULL values.
-		- Use FINAL only when querying tables with engines: ReplacingMergeTree / SummingMergeTree / AggregatingMergeTree / CollapsingMergeTree / VersionedCollapsingMergeTree.
-
+		- Use FINAL only when querying tables with engines: ReplacingMergeTree / SummingMergeTree / AggregatingMergeTree / CollapsingMergeTree / VersionedCollapsingMergeTree / CoalescingMergeTree.
+		- Do not use the cluster() / clusterAllReplicas() function.
+		- Treat Distributed tables as normal tables; the cluster routing is handled automatically by ClickHouse.
+		- When aggregating data from Distributed tables, use normal aggregation functions; ClickHouse will merge partial aggregates from shards automatically.
 		""";
 }
