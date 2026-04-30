@@ -1,0 +1,15 @@
+﻿<Solution>
+  <Folder Name="/Examples/">
+    <Project Path="examples\BlazorDemo\BlazorDemo.csproj" Type="Classic C#" />
+    <Project Path="examples\Example\Example.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/SolutionItems/">
+    <File Path=".dockerignore" />
+  </Folder>
+  <Project Path="src\Prompt2Plot.Blazor.ApexCharts\Prompt2Plot.Blazor.ApexCharts.csproj" Type="Classic C#" />
+  <Project Path="src\Prompt2Plot.Blazor\Prompt2Plot.Blazor.csproj" Type="Classic C#" />
+  <Project Path="src\Prompt2Plot.ClickHouse\Prompt2Plot.ClickHouse.csproj" Type="Classic C#" />
+  <Project Path="src\Prompt2Plot.Contracts\Prompt2Plot.Contracts.csproj" Type="Classic C#" />
+  <Project Path="src\Prompt2Plot.OpenAI\Prompt2Plot.OpenAI.csproj" Type="Classic C#" />
+  <Project Path="src\Prompt2Plot\Prompt2Plot.csproj" Type="Classic C#" />
+</Solution>
